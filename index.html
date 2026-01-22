@@ -5,71 +5,123 @@
 <title>Football Predictions</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-  /* Your previous CSS here */
-  :root {
-    --bg:#0f172a;
-    --card:#020617;
-    --primary:#22c55e;
-    --secondary:#38bdf8;
-    --text:#e5e7eb;
-    --muted:#94a3b8;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:system-ui,sans-serif;
-    background:linear-gradient(135deg,#020617,#0f172a);
-    color:var(--text);
-  }
-  .container{
-    max-width:1000px;
-    margin:auto;
-    padding:20px;
-  }
-  h1,h2{margin:16px 0}
-  .card{
-    background:var(--card);
-    padding:16px;
-    border-radius:14px;
-    margin-bottom:16px;
-    box-shadow:0 10px 30px rgba(0,0,0,.4);
-  }
-  .match{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-  }
-  .locked{opacity:.5}
-  .hidden{display:none}
-  input,button{
-    padding:8px;
-    border-radius:8px;
-    border:none;
-    font-size:14px;
-  }
-  input{
-    background:#020617;
-    color:var(--text);
-  }
-  button{
-    background:var(--primary);
-    color:#022c22;
-    font-weight:700;
-    cursor:pointer;
-  }
-  button:disabled{opacity:.4;cursor:not-allowed}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:10px}
-  th{color:var(--secondary);text-align:left}
-  hr{border:none;border-top:1px solid #020617;margin:30px 0}
+:root {
+  --bg: #0f172a;
+  --card: #1e2a47;
+  --primary: #3ddb6e;       /* bright green buttons */
+  --secondary: #acbdd4;     /* slate blue accent */
+  --text: #f0f4f8;
+  --muted: #7a8a9e;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: linear-gradient(135deg, #020617, var(--bg));
+  color: var(--text);
+}
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+h1, h2 {
+  margin: 16px 0;
+  color: var(--secondary);
+}
+.card {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+.match {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.locked {
+  opacity: 0.5;
+}
+.hidden {
+  display: none;
+}
+input, button, select {
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  background: var(--card);
+  color: var(--text);
+}
+button {
+  background: var(--primary);
+  color: #022c22;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+button:hover:not(:disabled) {
+  background: #33c86f;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 10px;
+}
+th {
+  color: var(--secondary);
+  text-align: left;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--card);
+  margin: 30px 0;
+}
+
 </style>
 </head>
 <body>
 <div class="container">
 
-<h1>⚽ Football Predictions</h1>
+<h1>⚽ Mpoukkiko Bet ⚽</h1>
+
+<br><br>
+
+<h2>🤔 Submit Your Predictions</h2>
+<div class="card">
+  <label for="userSelect">Select User:</label>
+  <select id="userSelect">
+    <option value="" disabled selected>Select your username</option>
+  </select>
+</div>
+
 <div id="matches"></div>
+
+<hr>
+
+<h2>📜 Predictions</h2>
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>User</th><th>Match</th><th>Predicted Score</th><th>Time</th></tr>
+    </thead>
+    <tbody id="historyBody"></tbody>
+  </table>
+</div>
+
+<hr>
 
 <h2>🏆 Leaderboard</h2>
 <div class="card">
@@ -108,12 +160,28 @@
     <div id="adminMatches"></div>
   </div>
 
+  <div class="card">
+    <h3>Set Match Result</h3>
+    <select id="resultMatchSelect">
+      <option value="" disabled selected>Select match</option>
+    </select>
+    <input id="resultHome" type="number" min="0" placeholder="Home goals" style="width:60px; margin-left:10px;" />
+    <input id="resultAway" type="number" min="0" placeholder="Away goals" style="width:60px; margin-left:5px;" />
+    <button onclick="setResult()">Save Result</button>
+  </div>
+
 </div>
 
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycby4XCcWlvdE6SVMglsHp1hovid4uF6COBV0flRkpuUTfGAkomNulEVe4q4wMY7rJn8y/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyezraloSKzd6EyiNIj5GF2UwXwfRU_lWuYwzfG1uQDsquc16hZVrRNsW8sMUi2R_Ul/exec";
+
+let globalData = {
+  users: [],
+  matches: [],
+  predictions: []
+};
 
 /* Helper to POST form-urlencoded data */
 function post(data) {
@@ -130,32 +198,97 @@ function post(data) {
 /* Load all data */
 async function load() {
   const data = await fetch(API_URL + "?action=data").then(r => r.json());
-  renderMatches(data.matches);
-  renderLeaderboard(data.users);
-  renderAdminMatches(data.matches);
+  globalData.users = data.users || [];
+  globalData.matches = data.matches || [];
+  globalData.results = data.results || [];  // load results too
+
+  // Load predictions separately (for history)
+  try {
+    const predRes = await fetch(API_URL + "?action=predictions");
+    const predData = await predRes.json();
+    globalData.predictions = predData.predictions || [];
+  } catch {
+    globalData.predictions = [];
+  }
+
+  renderUserSelect(globalData.users);
+  renderMatches(globalData.matches);
+  renderLeaderboard(globalData.users);
+  renderAdminMatches(globalData.matches);
+  renderHistory(globalData.predictions, globalData.matches);
+  renderResultMatchSelect(globalData.matches, globalData.results);
 }
+
+
+/* Render user dropdown */
+function renderUserSelect(users) {
+  const select = document.getElementById('userSelect');
+  // Try to get saved user from localStorage
+  const savedUser = localStorage.getItem('selectedUser') || "";
+
+  select.innerHTML = '<option value="" disabled selected>Select your username</option>';
+  users.forEach(u => {
+    const selected = (u[0] === savedUser) ? 'selected' : '';
+    select.innerHTML += `<option value="${u[0]}" ${selected}>${u[0]}</option>`;
+  });
+
+  // If savedUser exists and matches a user, set dropdown value
+  if (savedUser && users.find(u => u[0] === savedUser)) {
+    select.value = savedUser;
+  }
+}
+
+/* Listen for user selection to save */
+document.getElementById('userSelect').addEventListener('change', function() {
+  localStorage.setItem('selectedUser', this.value);
+});
+
+
 
 /* Render matches for predictions */
 function renderMatches(matches) {
   const el = document.getElementById('matches');
   el.innerHTML = '';
+  const now = new Date();
+
+  // Map predictions by user and match for quick lookup
+  const user = document.getElementById('userSelect').value;
+  const userPredictions = {};
+  globalData.predictions.forEach(p => {
+    if(p[1] === user) userPredictions[p[0]] = p;
+  });
+
   matches.forEach(m => {
     const kickoff = new Date(m[3]);
-    const locked = new Date() >= kickoff;
-    const finished = m[4] && (new Date() - new Date(m[4]) > 3600000);
-    if (finished) return;
+    const kickoffEnd = new Date(kickoff.getTime() + 120*60000); // +120 mins
+    const nowTime = now.getTime();
+    let status = '';
+    if (nowTime < kickoff.getTime()) status = 'Upcoming';
+    else if (nowTime >= kickoff.getTime() && nowTime <= kickoffEnd.getTime()) status = 'In Progress';
+    else status = 'Completed';
 
+    // Hide completed from prediction list
+    if(status === 'Completed') return;
+
+    const locked = now >= kickoff;
     const div = document.createElement('div');
     div.className = 'card match' + (locked ? ' locked' : '');
+
+    // get user's prediction if any
+    const pred = userPredictions[m[0]];
+    const predH = pred ? pred[2] : '';
+    const predA = pred ? pred[3] : '';
+
     div.innerHTML = `
       <div>
-        <strong>${m[1]} vs ${m[2]}</strong><br>
-        <small>${kickoff.toLocaleString()}</small>
+        <strong>${m[1]} vs ${m[2]}</strong> 
+        <small style="display:block; color: var(--muted);">${kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small>
+        <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
       </div>
       <div>
-        <input id="h-${m[0]}" type="number" min="0" ${locked ? 'disabled' : ''} style="width:45px" />
+        <input id="h-${m[0]}" type="number" min="0" ${locked ? 'disabled' : ''} style="width:45px" value="${predH}" />
         -
-        <input id="a-${m[0]}" type="number" min="0" ${locked ? 'disabled' : ''} style="width:45px" />
+        <input id="a-${m[0]}" type="number" min="0" ${locked ? 'disabled' : ''} style="width:45px" value="${predA}" />
         <button ${locked ? 'disabled' : ''} onclick="predict(${m[0]})">Save</button>
       </div>
     `;
@@ -167,7 +300,8 @@ function renderMatches(matches) {
 function renderLeaderboard(users) {
   const el = document.getElementById('leaderboard');
   el.innerHTML = '';
-  users.sort((a,b) => b[1]-a[1]).forEach(u => {
+  // Sort descending by points
+  users.sort((a,b) => b[1] - a[1]).forEach(u => {
     el.innerHTML += `<tr><td>${u[0]}</td><td>${u[1]}</td></tr>`;
   });
 }
@@ -176,24 +310,84 @@ function renderLeaderboard(users) {
 function renderAdminMatches(matches) {
   const el = document.getElementById('adminMatches');
   el.innerHTML = '';
+  const now = new Date();
   matches.forEach(m => {
-    el.innerHTML += `
-      <div>
-        ${m[1]} vs ${m[2]}
-        <button onclick="removeMatch(${m[0]})">❌</button>
-      </div>
+    const kickoff = new Date(m[3]);
+    const kickoffStr = kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const disableDelete = now >= kickoff ? 'disabled' : '';
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <span>${m[1]} vs ${m[2]} — <small style="color: var(--muted);">${kickoffStr}</small></span>
+      <button onclick="removeMatch(${m[0]})" ${disableDelete} title="${disableDelete ? 'Cannot delete match after kickoff' : ''}">❌</button>
     `;
+    el.appendChild(div);
+  });
+}
+
+/* Render prediction history */
+function renderHistory(predictions, matches) {
+  const tbody = document.getElementById('historyBody');
+  tbody.innerHTML = '';
+
+  // Map match id to details for easy lookup
+  const matchMap = {};
+  matches.forEach(m => {
+    matchMap[m[0]] = m;
+  });
+
+  predictions.forEach(p => {
+    const match = matchMap[p[0]];
+    if (!match) return;
+    const predScore = `${p[2]} - ${p[3]}`;
+    // Format time without seconds
+    const dt = new Date(p[4]);
+    const timeStr = dt.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p[1]}</td>
+      <td>${match[1]} vs ${match[2]}</td>
+      <td>${predScore}</td>
+      <td>${timeStr}</td>
+    `;
+    tbody.appendChild(tr);
   });
 }
 
 /* User prediction */
 function predict(id) {
-  const user = prompt("Username");
-  if (!user) return;
-  const h = document.getElementById(`h-${id}`).value;
-  const a = document.getElementById(`a-${id}`).value;
-  post({ action: 'predict', matchId: id, user, h, a }).then(load);
+  const userSelect = document.getElementById('userSelect');
+  const user = userSelect.value;
+  if (!user) {
+    alert("Please select your username");
+    return;
+  }
+  const hInput = document.getElementById(`h-${id}`);
+  const aInput = document.getElementById(`a-${id}`);
+  const h = hInput.value;
+  const a = aInput.value;
+  if (h === '' || a === '') {
+    alert("Please enter both scores");
+    return;
+  }
+  post({ action: 'predict', matchId: id, user, h, a }).then(() => {
+    // After saving, refresh predictions & users for leaderboard & history
+    Promise.all([
+      fetch(API_URL + "?action=predictions").then(r => r.json()),
+      fetch(API_URL + "?action=data").then(r => r.json())
+    ]).then(([predData, data]) => {
+      globalData.predictions = predData.predictions || [];
+      globalData.users = data.users || [];
+      renderLeaderboard(globalData.users);
+      renderHistory(globalData.predictions, globalData.matches);
+      // Do NOT reload matches so input fields keep current values
+    });
+  });
 }
+
+/* When user changes, pre-fill predictions */
+document.getElementById('userSelect').addEventListener('change', () => {
+  renderMatches(globalData.matches);
+});
 
 /* Admin login */
 function login() {
@@ -237,11 +431,62 @@ function addMatch() {
 /* Remove match */
 function removeMatch(id) {
   if (!confirm("Remove this match?")) return;
+  // Check kickoff time - prevent delete if passed
+  const match = globalData.matches.find(m => m[0] == id);
+  if (!match) return alert("Match not found");
+  if (new Date(match[3]) <= new Date()) {
+    alert("Cannot delete match after kickoff time");
+    return;
+  }
   post({ action: 'removeMatch', id }).then(load);
+}
+
+function renderResultMatchSelect(matches, results) {
+  const select = document.getElementById('resultMatchSelect');
+  const currentValue = select.value;
+  const now = new Date();
+  select.innerHTML = '<option value="" disabled>Select match</option>';
+
+  // Make a Set of matchIds that already have results
+  const matchesWithResults = new Set(results.map(r => r[0].toString()));
+
+  matches.forEach(m => {
+    const kickoff = new Date(m[3]);
+    const matchIdStr = m[0].toString();
+    // Only if kickoff passed AND no result exists yet
+    if (now >= kickoff && !matchesWithResults.has(matchIdStr)) {
+      const label = `${m[1]} vs ${m[2]} (${kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})})`;
+      const selected = (matchIdStr === currentValue) ? 'selected' : '';
+      select.innerHTML += `<option value="${m[0]}" ${selected}>${label}</option>`;
+    }
+  });
+}
+
+
+
+/* Save match result */
+function setResult() {
+  const matchSelect = document.getElementById('resultMatchSelect');
+  const h = document.getElementById('resultHome').value;
+  const a = document.getElementById('resultAway').value;
+  const matchId = matchSelect.value;
+
+  if (!matchId) return alert("Select a match");
+  if (h === '' || a === '') return alert("Enter both home and away goals");
+
+  post({ action: 'result', matchId, h, a }).then(() => {
+    alert("Result saved!");
+    // Clear inputs after saving result
+    matchSelect.value = '';
+    document.getElementById('resultHome').value = '';
+    document.getElementById('resultAway').value = '';
+    load();
+  });
 }
 
 /* Initialize app */
 load();
+
 </script>
 </body>
 </html>
