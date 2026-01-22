@@ -22,6 +22,8 @@ body {
   font-family: system-ui, sans-serif;
   background: linear-gradient(135deg, #020617, var(--bg));
   color: var(--text);
+  height: 100vh;
+  overflow: hidden;
 }
 .container {
   max-width: 1000px;
@@ -90,10 +92,63 @@ hr {
   margin: 30px 0;
 }
 
+/* User login overlay */
+#userLoginOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+#userLoginBox {
+  background: var(--card);
+  padding: 30px 40px;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+}
+#userLoginBox h2 {
+  margin-bottom: 20px;
+  color: var(--secondary);
+}
+#userLoginBox input {
+  width: 100%;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+#userLoginBox button {
+  width: 100%;
+}
+#userLoginError {
+  color: #ff6b6b;
+  margin-bottom: 12px;
+  display: none;
+  font-weight: 600;
+}
+
+/* Keep main container hidden initially */
+#mainContainer.hidden {
+  display: none;
+}
 </style>
 </head>
 <body>
-<div class="container">
+
+<!-- User Login Overlay -->
+<div id="userLoginOverlay">
+  <div id="userLoginBox">
+    <h2>Enter User Password</h2>
+    <input type="password" id="userPassInput" placeholder="User password" autocomplete="off" />
+    <div id="userLoginError">Incorrect password, try again.</div>
+    <button id="userLoginBtn">Login</button>
+  </div>
+</div>
+
+<!-- Main app container hidden initially -->
+<div id="mainContainer" class="hidden container">
 
 <h1>⚽ Mpoukkiko Bet ⚽</h1>
 
@@ -135,7 +190,7 @@ hr {
 
 <h2>🔐 Admin</h2>
 <div id="login" class="card">
-  <input id="adminPass" type="password" placeholder="Admin password" />
+  <input id="adminPass" type="password" placeholder="Admin password" autocomplete="off" />
   <button onclick="login()">Login</button>
 </div>
 
@@ -175,12 +230,13 @@ hr {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyezraloSKzd6EyiNIj5GF2UwXwfRU_lWuYwzfG1uQDsquc16hZVrRNsW8sMUi2R_Ul/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwtVtnUF3Ej7ReFRdyZN-DBc_b4Rz5kkNzHc3LIsnOPVConJdekH0nWjwYNiPByCKMj/exec";
 
 let globalData = {
   users: [],
   matches: [],
-  predictions: []
+  predictions: [],
+  results: []
 };
 
 /* Helper to POST form-urlencoded data */
@@ -462,8 +518,6 @@ function renderResultMatchSelect(matches, results) {
   });
 }
 
-
-
 /* Save match result */
 function setResult() {
   const matchSelect = document.getElementById('resultMatchSelect');
@@ -484,9 +538,60 @@ function setResult() {
   });
 }
 
-/* Initialize app */
-load();
+/* Check user password via API */
+async function checkUserPassword(password) {
+  try {
+    const res = await post({ action: 'userLogin', password });
+    return res.ok === true;
+  } catch {
+    return false;
+  }
+}
 
+/* User login overlay elements */
+const userLoginOverlay = document.getElementById('userLoginOverlay');
+const userPassInput = document.getElementById('userPassInput');
+const userLoginBtn = document.getElementById('userLoginBtn');
+const userLoginError = document.getElementById('userLoginError');
+
+userLoginBtn.onclick = async () => {
+  const pass = userPassInput.value.trim();
+  if (!pass) {
+    alert("Please enter user password");
+    return;
+  }
+  userLoginError.style.display = 'none';
+  userLoginBtn.disabled = true;
+
+  const valid = await checkUserPassword(pass);
+
+  userLoginBtn.disabled = false;
+
+  if (valid) {
+    // Hide login overlay
+    userLoginOverlay.style.display = 'none';
+    // Show main container
+    document.getElementById('mainContainer').classList.remove('hidden');
+
+    // Restore scrolling and height on body
+    document.body.style.overflow = 'auto';
+    document.body.style.height = 'auto';
+
+    load();
+  } else {
+    userLoginError.style.display = 'block';
+    userPassInput.value = '';
+    userPassInput.focus();
+  }
+};
+
+/* Press Enter key on user password input triggers login */
+userPassInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    userLoginBtn.click();
+  }
+});
 </script>
+
 </body>
 </html>
