@@ -1,71 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Football Predictions</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-:root {
-  --bg:#0f172a;
-  --card:#020617;
-  --primary:#22c55e;
-  --secondary:#38bdf8;
-  --text:#e5e7eb;
-  --muted:#94a3b8;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,sans-serif;
-  background:linear-gradient(135deg,#020617,#0f172a);
-  color:var(--text);
-}
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:20px;
-}
-h1,h2{margin:16px 0}
-.card{
-  background:var(--card);
-  padding:16px;
-  border-radius:14px;
-  margin-bottom:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.4);
-}
-.match{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
-.locked{opacity:.5}
-.hidden{display:none}
-input,button{
-  padding:8px;
-  border-radius:8px;
-  border:none;
-  font-size:14px;
-}
-input{
-  background:#020617;
-  color:var(--text);
-}
-button{
-  background:var(--primary);
-  color:#022c22;
-  font-weight:700;
-  cursor:pointer;
-}
-button:disabled{opacity:.4;cursor:not-allowed}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px}
-th{color:var(--secondary);text-align:left}
-hr{border:none;border-top:1px solid #020617;margin:30px 0}
+  /* Your previous CSS here */
+  :root {
+    --bg:#0f172a;
+    --card:#020617;
+    --primary:#22c55e;
+    --secondary:#38bdf8;
+    --text:#e5e7eb;
+    --muted:#94a3b8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,sans-serif;
+    background:linear-gradient(135deg,#020617,#0f172a);
+    color:var(--text);
+  }
+  .container{
+    max-width:1000px;
+    margin:auto;
+    padding:20px;
+  }
+  h1,h2{margin:16px 0}
+  .card{
+    background:var(--card);
+    padding:16px;
+    border-radius:14px;
+    margin-bottom:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  .match{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .locked{opacity:.5}
+  .hidden{display:none}
+  input,button{
+    padding:8px;
+    border-radius:8px;
+    border:none;
+    font-size:14px;
+  }
+  input{
+    background:#020617;
+    color:var(--text);
+  }
+  button{
+    background:var(--primary);
+    color:#022c22;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button:disabled{opacity:.4;cursor:not-allowed}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px}
+  th{color:var(--secondary);text-align:left}
+  hr{border:none;border-top:1px solid #020617;margin:30px 0}
 </style>
 </head>
-
 <body>
 <div class="container">
 
@@ -74,110 +73,111 @@ hr{border:none;border-top:1px solid #020617;margin:30px 0}
 
 <h2>🏆 Leaderboard</h2>
 <div class="card">
-<table>
-<thead><tr><th>User</th><th>Points</th></tr></thead>
-<tbody id="leaderboard"></tbody>
-</table>
+  <table>
+    <thead><tr><th>User</th><th>Points</th></tr></thead>
+    <tbody id="leaderboard"></tbody>
+  </table>
 </div>
 
 <hr>
 
 <h2>🔐 Admin</h2>
 <div id="login" class="card">
-<input id="adminPass" type="password" placeholder="Admin password">
-<button onclick="login()">Login</button>
+  <input id="adminPass" type="password" placeholder="Admin password" />
+  <button onclick="login()">Login</button>
 </div>
 
 <div id="admin" class="hidden">
 
-<div class="card">
-<h3>Add User</h3>
-<input id="newUser" placeholder="Username">
-<button onclick="addUser()">Add</button>
-</div>
+  <div class="card">
+    <h3>Add User</h3>
+    <input id="newUser" placeholder="Username" />
+    <button onclick="addUser()">Add</button>
+  </div>
 
-<div class="card">
-<h3>Add Match</h3>
-<input id="home" placeholder="Home team">
-<input id="away" placeholder="Away team">
-<input id="time" type="datetime-local">
-<button onclick="addMatch()">Add Match</button>
-</div>
+  <div class="card">
+    <h3>Add Match</h3>
+    <input id="home" placeholder="Home team" />
+    <input id="away" placeholder="Away team" />
+    <input id="time" type="datetime-local" />
+    <button onclick="addMatch()">Add Match</button>
+  </div>
 
-<div class="card">
-<h3>Manage Matches</h3>
-<div id="adminMatches"></div>
-</div>
+  <div class="card">
+    <h3>Manage Matches</h3>
+    <div id="adminMatches"></div>
+  </div>
 
 </div>
 
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const API_URL = "https://script.google.com/macros/s/AKfycbzLBIOiWKxOF7GGp8m6P0TZ3TuNo-kHnyvc3lMW_qWLFoYV40nLWZsBxiP3LBqG6SSz/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby4XCcWlvdE6SVMglsHp1hovid4uF6COBV0flRkpuUTfGAkomNulEVe4q4wMY7rJn8y/exec";
 
-/* ================= HELPERS ================= */
-const now = () => new Date();
-const post = d => fetch(API_URL, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(d)
-}).then(r => r.json());
+/* Helper to POST form-urlencoded data */
+function post(data) {
+  const formData = new URLSearchParams();
+  for (const key in data) {
+    formData.append(key, data[key]);
+  }
+  return fetch(API_URL, {
+    method: 'POST',
+    body: formData,
+  }).then(r => r.json());
+}
 
-
-/* ================= LOAD DATA ================= */
-async function load(){
-  const data = await fetch(API_URL+"?action=data").then(r=>r.json());
+/* Load all data */
+async function load() {
+  const data = await fetch(API_URL + "?action=data").then(r => r.json());
   renderMatches(data.matches);
   renderLeaderboard(data.users);
   renderAdminMatches(data.matches);
 }
 
-/* ================= RENDER ================= */
-function renderMatches(matches){
-  const el=document.getElementById('matches');
-  el.innerHTML='';
-  matches.forEach(m=>{
-    const kickoff=new Date(m[3]);
-    const locked=now()>=kickoff;
-    const finished=m[4] && (now()-new Date(m[4]))>3600000;
-    if(finished) return;
+/* Render matches for predictions */
+function renderMatches(matches) {
+  const el = document.getElementById('matches');
+  el.innerHTML = '';
+  matches.forEach(m => {
+    const kickoff = new Date(m[3]);
+    const locked = new Date() >= kickoff;
+    const finished = m[4] && (new Date() - new Date(m[4]) > 3600000);
+    if (finished) return;
 
-    const div=document.createElement('div');
-    div.className='card match'+(locked?' locked':'');
-    div.innerHTML=`
+    const div = document.createElement('div');
+    div.className = 'card match' + (locked ? ' locked' : '');
+    div.innerHTML = `
       <div>
         <strong>${m[1]} vs ${m[2]}</strong><br>
         <small>${kickoff.toLocaleString()}</small>
       </div>
       <div>
-        <input id="h-${m[0]}" type="number" min="0" ${locked?'disabled':''} style="width:45px"> -
-        <input id="a-${m[0]}" type="number" min="0" ${locked?'disabled':''} style="width:45px">
-        <button ${locked?'disabled':''} onclick="predict(${m[0]})">Save</button>
+        <input id="h-${m[0]}" type="number" min="0" ${locked ? 'disabled' : ''} style="width:45px" />
+        -
+        <input id="a-${m[0]}" type="number" min="0" ${locked ? 'disabled' : ''} style="width:45px" />
+        <button ${locked ? 'disabled' : ''} onclick="predict(${m[0]})">Save</button>
       </div>
     `;
     el.appendChild(div);
   });
 }
 
-function renderLeaderboard(users){
-  const el=document.getElementById('leaderboard');
-  el.innerHTML='';
-  users
-    .sort((a,b)=>b[1]-a[1])
-    .forEach(u=>{
-      el.innerHTML+=`<tr><td>${u[0]}</td><td>${u[1]}</td></tr>`;
-    });
+/* Render leaderboard */
+function renderLeaderboard(users) {
+  const el = document.getElementById('leaderboard');
+  el.innerHTML = '';
+  users.sort((a,b) => b[1]-a[1]).forEach(u => {
+    el.innerHTML += `<tr><td>${u[0]}</td><td>${u[1]}</td></tr>`;
+  });
 }
 
-function renderAdminMatches(matches){
-  const el=document.getElementById('adminMatches');
-  el.innerHTML='';
-  matches.forEach(m=>{
-    el.innerHTML+=`
+/* Render matches for admin to manage */
+function renderAdminMatches(matches) {
+  const el = document.getElementById('adminMatches');
+  el.innerHTML = '';
+  matches.forEach(m => {
+    el.innerHTML += `
       <div>
         ${m[1]} vs ${m[2]}
         <button onclick="removeMatch(${m[0]})">❌</button>
@@ -186,46 +186,62 @@ function renderAdminMatches(matches){
   });
 }
 
-/* ================= ACTIONS ================= */
-function predict(id){
-  const user=prompt("Username");
-  if(!user) return;
-  const h=document.getElementById(`h-${id}`).value;
-  const a=document.getElementById(`a-${id}`).value;
-  post({action:'predict',matchId:id,user,h,a}).then(load);
+/* User prediction */
+function predict(id) {
+  const user = prompt("Username");
+  if (!user) return;
+  const h = document.getElementById(`h-${id}`).value;
+  const a = document.getElementById(`a-${id}`).value;
+  post({ action: 'predict', matchId: id, user, h, a }).then(load);
 }
 
-function login(){
-  post({action:'login',password:adminPass.value})
-    .then(r=>{
-      if(r.ok){
-        login.classList.add('hidden');
-        admin.classList.remove('hidden');
-      } else alert("Wrong password");
+/* Admin login */
+function login() {
+  const passInput = document.getElementById('adminPass');
+  post({ action: 'login', password: passInput.value })
+    .then(r => {
+      if (r.ok) {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('admin').classList.remove('hidden');
+        load();
+      } else {
+        alert("Wrong password");
+      }
     });
 }
 
-function addUser(){
-  if(!newUser.value) return;
-  post({action:'addUser',user:newUser.value}).then(load);
+/* Add user */
+function addUser() {
+  const newUser = document.getElementById('newUser');
+  if (!newUser.value) return alert("Enter username");
+  post({ action: 'addUser', user: newUser.value }).then(() => {
+    newUser.value = '';
+    load();
+  });
 }
 
-function addMatch(){
-  post({
-    action:'addMatch',
-    home:home.value,
-    away:away.value,
-    kickoff:time.value
-  }).then(load);
+/* Add match */
+function addMatch() {
+  const home = document.getElementById('home');
+  const away = document.getElementById('away');
+  const time = document.getElementById('time');
+  if (!home.value || !away.value || !time.value) return alert("Fill all match fields");
+  post({ action: 'addMatch', home: home.value, away: away.value, kickoff: time.value }).then(() => {
+    home.value = '';
+    away.value = '';
+    time.value = '';
+    load();
+  });
 }
 
-function removeMatch(id){
-  post({action:'removeMatch',id}).then(load);
+/* Remove match */
+function removeMatch(id) {
+  if (!confirm("Remove this match?")) return;
+  post({ action: 'removeMatch', id }).then(load);
 }
 
-/* ================= INIT ================= */
+/* Initialize app */
 load();
 </script>
-
 </body>
 </html>
