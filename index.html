@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Football Predictions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root {
+  --bg:#0f172a;
+  --card:#020617;
+  --primary:#22c55e;
+  --secondary:#38bdf8;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(135deg,#020617,#0f172a);
+  color:var(--text);
+}
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:20px;
+}
+h1,h2{margin:16px 0}
+.card{
+  background:var(--card);
+  padding:16px;
+  border-radius:14px;
+  margin-bottom:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.match{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.locked{opacity:.5}
+.hidden{display:none}
+input,button{
+  padding:8px;
+  border-radius:8px;
+  border:none;
+  font-size:14px;
+}
+input{
+  background:#020617;
+  color:var(--text);
+}
+button{
+  background:var(--primary);
+  color:#022c22;
+  font-weight:700;
+  cursor:pointer;
+}
+button:disabled{opacity:.4;cursor:not-allowed}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px}
+th{color:var(--secondary);text-align:left}
+hr{border:none;border-top:1px solid #020617;margin:30px 0}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>⚽ Football Predictions</h1>
+<div id="matches"></div>
+
+<h2>🏆 Leaderboard</h2>
+<div class="card">
+<table>
+<thead><tr><th>User</th><th>Points</th></tr></thead>
+<tbody id="leaderboard"></tbody>
+</table>
+</div>
+
+<hr>
+
+<h2>🔐 Admin</h2>
+<div id="login" class="card">
+<input id="adminPass" type="password" placeholder="Admin password">
+<button onclick="login()">Login</button>
+</div>
+
+<div id="admin" class="hidden">
+
+<div class="card">
+<h3>Add User</h3>
+<input id="newUser" placeholder="Username">
+<button onclick="addUser()">Add</button>
+</div>
+
+<div class="card">
+<h3>Add Match</h3>
+<input id="home" placeholder="Home team">
+<input id="away" placeholder="Away team">
+<input id="time" type="datetime-local">
+<button onclick="addMatch()">Add Match</button>
+</div>
+
+<div class="card">
+<h3>Manage Matches</h3>
+<div id="adminMatches"></div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbxG9uxKBdWFVHJ43kaK_6gA9gNZrmDlti8HRSp_p4D0xPAZgjftA_e95iQBWCibNH3M/exec";
+
+/* ================= HELPERS ================= */
+const now = () => new Date();
+const post = d => fetch(API_URL,{
+  method:'POST',
+  body:JSON.stringify(d)
+}).then(r=>r.json());
+
+/* ================= LOAD DATA ================= */
+async function load(){
+  const data = await fetch(API_URL+"?action=data").then(r=>r.json());
+  renderMatches(data.matches);
+  renderLeaderboard(data.users);
+  renderAdminMatches(data.matches);
+}
+
+/* ================= RENDER ================= */
+function renderMatches(matches){
+  const el=document.getElementById('matches');
+  el.innerHTML='';
+  matches.forEach(m=>{
+    const kickoff=new Date(m[3]);
+    const locked=now()>=kickoff;
+    const finished=m[4] && (now()-new Date(m[4]))>3600000;
+    if(finished) return;
+
+    const div=document.createElement('div');
+    div.className='card match'+(locked?' locked':'');
+    div.innerHTML=`
+      <div>
+        <strong>${m[1]} vs ${m[2]}</strong><br>
+        <small>${kickoff.toLocaleString()}</small>
+      </div>
+      <div>
+        <input id="h-${m[0]}" type="number" min="0" ${locked?'disabled':''} style="width:45px"> -
+        <input id="a-${m[0]}" type="number" min="0" ${locked?'disabled':''} style="width:45px">
+        <button ${locked?'disabled':''} onclick="predict(${m[0]})">Save</button>
+      </div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function renderLeaderboard(users){
+  const el=document.getElementById('leaderboard');
+  el.innerHTML='';
+  users
+    .sort((a,b)=>b[1]-a[1])
+    .forEach(u=>{
+      el.innerHTML+=`<tr><td>${u[0]}</td><td>${u[1]}</td></tr>`;
+    });
+}
+
+function renderAdminMatches(matches){
+  const el=document.getElementById('adminMatches');
+  el.innerHTML='';
+  matches.forEach(m=>{
+    el.innerHTML+=`
+      <div>
+        ${m[1]} vs ${m[2]}
+        <button onclick="removeMatch(${m[0]})">❌</button>
+      </div>
+    `;
+  });
+}
+
+/* ================= ACTIONS ================= */
+function predict(id){
+  const user=prompt("Username");
+  if(!user) return;
+  const h=document.getElementById(`h-${id}`).value;
+  const a=document.getElementById(`a-${id}`).value;
+  post({action:'predict',matchId:id,user,h,a}).then(load);
+}
+
+function login(){
+  post({action:'login',password:adminPass.value})
+    .then(r=>{
+      if(r.ok){
+        login.classList.add('hidden');
+        admin.classList.remove('hidden');
+      } else alert("Wrong password");
+    });
+}
+
+function addUser(){
+  if(!newUser.value) return;
+  post({action:'addUser',user:newUser.value}).then(load);
+}
+
+function addMatch(){
+  post({
+    action:'addMatch',
+    home:home.value,
+    away:away.value,
+    kickoff:time.value
+  }).then(load);
+}
+
+function removeMatch(id){
+  post({action:'removeMatch',id}).then(load);
+}
+
+/* ================= INIT ================= */
+load();
+</script>
+
+</body>
+</html>
