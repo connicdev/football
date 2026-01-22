@@ -119,10 +119,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxG9uxKBdWFVHJ43kaK_6gA
 
 /* ================= HELPERS ================= */
 const now = () => new Date();
-const post = d => fetch(API_URL,{
-  method:'POST',
-  body:JSON.stringify(d)
-}).then(r=>r.json());
+const post = d => fetch(API_URL, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(d)
+}).then(r => r.json());
+
 
 /* ================= LOAD DATA ================= */
 async function load(){
