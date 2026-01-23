@@ -324,6 +324,13 @@ hr {
   </table>
 </div>
 
+<div style="margin-bottom: 12px;">
+  <label>
+    <input type="checkbox" id="toggleOldPredictions" />
+    Show older predictions
+  </label>
+</div>
+
 <hr>
 
 <h2>🏆 Leaderboard</h2>
@@ -431,7 +438,7 @@ async function load() {
   renderMatches(globalData.matches);
   renderLeaderboard(globalData.users);
   renderAdminMatches(globalData.matches);
-  renderHistory(globalData.predictions, globalData.matches);
+  renderHistory(globalData.predictions, globalData.matches, false);
   renderResultMatchSelect(globalData.matches, globalData.results);
   hideLoader();
 }
@@ -560,7 +567,7 @@ function renderAdminMatches(matches) {
 }
 
 /* Render prediction history */
-function renderHistory(predictions, matches) {
+function renderHistory(predictions, matches, showAll = false) {
   const tbody = document.getElementById('historyBody');
   tbody.innerHTML = '';
 
@@ -578,8 +585,8 @@ function renderHistory(predictions, matches) {
     const kickoff = new Date(match[3]);
     const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
 
-    // Skip predictions of matches completed more than 24h ago
-    if (now > new Date(kickoffEnd.getTime() + 24 * 60 * 60000)) {
+    // Skip predictions of matches completed more than 24h ago if showAll is false
+    if (!showAll && now > new Date(kickoffEnd.getTime() + 24 * 60 * 60000)) {
       return;
     }
 
@@ -607,6 +614,10 @@ function renderHistory(predictions, matches) {
     tbody.appendChild(tr);
   });
 }
+
+document.getElementById('toggleOldPredictions').addEventListener('change', function() {
+  renderHistory(globalData.predictions, globalData.matches, this.checked);
+});
 
 /* User prediction */
 function predict(id) {
@@ -690,7 +701,10 @@ async function saveAllPredictions() {
 
 /* When user changes, pre-fill predictions */
 document.getElementById('userSelect').addEventListener('change', () => {
+  showLoader('Loading predictions…');
+  localStorage.setItem('selectedUser', document.getElementById('userSelect').value);
   renderMatches(globalData.matches);
+  hideLoader();
 });
 
 /* Admin login */
