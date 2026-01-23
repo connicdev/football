@@ -276,6 +276,83 @@ hr {
   background-color: #10b981; /* Emerald-500 */
   color: white;
 }
+
+.boosted-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  background-color: #ef4444; /* red */
+  color: white;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+/* Style for the boosted checkbox label to match the boosted tag */
+.boosted-label {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  background-color: #ef4444; /* same red as .boosted-tag */
+  color: white;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  user-select: none;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+/* Optional: style the checkbox itself to better fit */
+.boosted-checkbox {
+  margin-left: 10px;
+  vertical-align: middle;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: #ef4444; /* modern CSS to color checkbox */
+}
+
+/* Container for the add match inputs and boosted */
+#addMatchContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Inputs grow evenly */
+#addMatchContainer input[type="text"],
+#addMatchContainer input[type="datetime-local"] {
+  flex: 1 1 150px;
+  min-width: 150px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* Container for boosted checkbox + label */
+#boostedContainer {
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+}
+
+/* On mobile, stack boosted below datetime */
+@media (max-width: 600px) {
+  #addMatchContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #boostedContainer {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -294,6 +371,10 @@ hr {
 <div id="mainContainer" class="hidden container">
 
 <h1>⚽ Boukkis.cc ⚽</h1>
+
+<button id="refreshBtn" style="margin-left: 12px; padding: 6px 12px; font-size: 14px; cursor: pointer;">
+  🔄 Refresh
+</button>
 
 <br><br>
 
@@ -359,10 +440,15 @@ hr {
   </div>
 
   <div class="card">
-    <h3>Add Match</h3>
-    <input id="home" placeholder="Home team" />
-    <input id="away" placeholder="Away team" />
-    <input id="time" type="datetime-local" />
+    <div id="addMatchContainer">
+      <input id="home" placeholder="Home team" />
+      <input id="away" placeholder="Away team" />
+      <input id="time" type="datetime-local" />
+      <div id="boostedContainer">
+        <input type="checkbox" id="boosted" class="boosted-checkbox" />
+        <label for="boosted" class="boosted-label">Boosted</label>
+      </div>
+    </div>
     <button onclick="addMatch()">Add Match</button>
   </div>
 
@@ -386,7 +472,7 @@ hr {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwtVtnUF3Ej7ReFRdyZN-DBc_b4Rz5kkNzHc3LIsnOPVConJdekH0nWjwYNiPByCKMj/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzRYls8N13HeCqOmqjbSjYdUQGSHXeMZYa0etEbfFIW9MV6oQLsEq8ouA5G-KrzAHk8/exec";
 
 let pendingPredictions = {};
 
@@ -435,7 +521,7 @@ async function load() {
     globalData.predictions = [];
   }
 
-  renderUserSelect(globalData.users);
+  renderUserSelect(globalData.users, false);
   renderMatches(globalData.matches);
   renderLeaderboard(globalData.users);
   renderAdminMatches(globalData.matches);
@@ -446,20 +532,18 @@ async function load() {
 
 
 /* Render user dropdown */
-function renderUserSelect(users) {
+function renderUserSelect(users, keepSelection = false) {
   const select = document.getElementById('userSelect');
-  // Try to get saved user from localStorage
-  const savedUser = localStorage.getItem('selectedUser') || "";
+  let currentValue = keepSelection ? select.value : '';
 
   select.innerHTML = '<option value="" disabled selected>Select your username</option>';
   users.forEach(u => {
-    const selected = (u[0] === savedUser) ? 'selected' : '';
+    const selected = (u[0] === currentValue) ? 'selected' : '';
     select.innerHTML += `<option value="${u[0]}" ${selected}>${u[0]}</option>`;
   });
 
-  // If savedUser exists and matches a user, set dropdown value
-  if (savedUser && users.find(u => u[0] === savedUser)) {
-    select.value = savedUser;
+  if (!keepSelection) {
+    select.value = '';
   }
 }
 
@@ -504,11 +588,15 @@ function renderMatches(matches) {
     const predH = pred ? pred[2] : '';
     const predA = pred ? pred[3] : '';
 
+    // Check if boosted column exists and is 'T'
+    const isBoosted = (m.length > 4 && m[4] === 'T');
+
     div.innerHTML = `
       <div>
         <strong>${m[1]} vs ${m[2]}</strong> 
         <small style="display:block; color: var(--muted);">${kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small>
         <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
+        ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
       </div>
       <div class="match-actions">
         <input id="h-${m[0]}" type="number" min="0"
@@ -599,6 +687,9 @@ function renderHistory(predictions, matches, showAll = false) {
     else if (now >= kickoff && now <= kickoffEnd) status = 'In Progress';
     else status = 'Completed';
 
+    // Check boosted flag
+    const isBoosted = (match.length > 4 && match[4] === 'T');
+
     // Format time without seconds
     const dt = new Date(p[4]);
     const timeStr = dt.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -608,6 +699,7 @@ function renderHistory(predictions, matches, showAll = false) {
       <td>
         ${match[1]} vs ${match[2]}<br/>
         <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
+        ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
       </td>
       <td>${predScore}</td>
       <td>${timeStr}</td>
@@ -692,6 +784,7 @@ async function saveAllPredictions() {
 
   renderLeaderboard(globalData.users);
   renderHistory(globalData.predictions, globalData.matches);
+  renderUserSelect(globalData.users, true);
 
   btn.disabled = false;
   btn.textContent = '💾 Save All Predictions';
@@ -741,11 +834,20 @@ function addMatch() {
   const home = document.getElementById('home');
   const away = document.getElementById('away');
   const time = document.getElementById('time');
+  const boosted = document.getElementById('boosted').checked ? 'T' : 'F';
   if (!home.value || !away.value || !time.value) return alert("Fill all match fields");
-  post({ action: 'addMatch', home: home.value, away: away.value, kickoff: time.value }).then(() => {
+
+  post({ 
+    action: 'addMatch', 
+    home: home.value, 
+    away: away.value, 
+    kickoff: time.value,
+    boosted 
+  }).then(() => {
     home.value = '';
     away.value = '';
     time.value = '';
+    document.getElementById('boosted').checked = false;
     load();
     hideLoader();
   });
@@ -799,7 +901,6 @@ function setResult() {
 
   post({ action: 'result', matchId, h, a }).then(() => {
     showLoader('Saving result…');
-    alert("Result saved!");
     // Clear inputs after saving result
     matchSelect.value = '';
     document.getElementById('resultHome').value = '';
@@ -862,6 +963,20 @@ userPassInput.addEventListener('keydown', (e) => {
     userLoginBtn.click();
   }
 });
+
+document.getElementById('adminPass').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    login();
+  }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  showLoader('Reloading data…');
+  load().then(() => {
+    hideLoader();
+  });
+});
+
 </script>
 <!-- Global Loader -->
 <div id="loader" class="hidden">
