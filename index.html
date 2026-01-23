@@ -353,6 +353,15 @@ hr {
   }
 }
 
+tr.live-row {
+  border-left: 4px solid #f59e0b; /* same amber as In Progress */
+  background: rgba(245, 158, 11, 0.08);
+}
+
+#historyBody tr {
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
 </style>
 </head>
 <body>
@@ -390,17 +399,33 @@ hr {
 
 <div class="card">
   <button id="saveAllBtn" onclick="saveAllPredictions()">
-    💾 Save All Predictions
+    💾 Submit All
   </button>
 </div>
 
 <hr>
 
-<h2>📜 Predictions</h2>
+<h2>🏆 Leaderboard</h2>
 <div class="card">
+  <table>
+    <thead><tr><th>USER</th><th>POINTS</th></tr></thead>
+    <tbody id="leaderboard"></tbody>
+  </table>
+</div>
+
+<hr>
+
+<h2>🗒️ Predictions</h2>
+<div class="card">
+  <button id="defaultSortBtn" style="margin-bottom:10px;">⇅ Sort</button>
   <table id="historyTable">
     <thead>
-      <tr><th>User</th><th>Match</th><th>Score</th><th>Time</th></tr>
+      <tr>
+        <th onclick="sortHistory('user')" style="cursor:pointer">USER ⬍</th>
+        <th onclick="sortHistory('match')" style="cursor:pointer">MATCH ⬍</th>
+        <th>SCORE</th>
+        <th>TIME</th>
+      </tr>
     </thead>
     <tbody id="historyBody"></tbody>
   </table>
@@ -409,23 +434,13 @@ hr {
 <div style="margin-bottom: 12px;">
   <label>
     <input type="checkbox" id="toggleOldPredictions" />
-    Show older predictions
+    Show Archived
   </label>
 </div>
 
 <hr>
 
-<h2>🏆 Leaderboard</h2>
-<div class="card">
-  <table>
-    <thead><tr><th>User</th><th>Points</th></tr></thead>
-    <tbody id="leaderboard"></tbody>
-  </table>
-</div>
-
-<hr>
-
-<h2>🔐 Admin</h2>
+<h2>⚙️ Admin</h2>
 <div id="login" class="card">
   <input id="adminPass" type="password" placeholder="Admin password" autocomplete="off" />
   <button onclick="login()">Login</button>
@@ -440,6 +455,7 @@ hr {
   </div>
 
   <div class="card">
+    <h3>Add Match</h3>
     <div id="addMatchContainer">
       <input id="home" placeholder="Home team" />
       <input id="away" placeholder="Away team" />
@@ -453,7 +469,7 @@ hr {
   </div>
 
   <div class="card">
-    <h3>Manage Matches</h3>
+    <h3>Delete Matches</h3>
     <div id="adminMatches"></div>
   </div>
 
@@ -475,6 +491,8 @@ hr {
 const API_URL = "https://script.google.com/macros/s/AKfycbzRYls8N13HeCqOmqjbSjYdUQGSHXeMZYa0etEbfFIW9MV6oQLsEq8ouA5G-KrzAHk8/exec";
 
 let pendingPredictions = {};
+let historySortMode = 'default'; // 'default' | 'user' | 'match'
+let historySortAsc = true;
 
 let globalData = {
   users: [],
@@ -490,6 +508,21 @@ function showLoader(text = 'Loading…') {
 
 function hideLoader() {
   document.getElementById('loader').classList.add('hidden');
+}
+
+function sortHistory(column) {
+  if (historySortMode === column) {
+    historySortAsc = !historySortAsc;
+  } else {
+    historySortMode = column;
+    historySortAsc = true;
+  }
+
+  renderHistory(
+    globalData.predictions,
+    globalData.matches,
+    document.getElementById('toggleOldPredictions').checked
+  );
 }
 
 /* Helper to POST form-urlencoded data */
@@ -649,7 +682,7 @@ function renderAdminMatches(matches) {
     const div = document.createElement('div');
     div.innerHTML = `
       <span>${m[1]} vs ${m[2]} — <small style="color: var(--muted);">${kickoffStr}</small></span>
-      <button class="remove-match-btn" onclick="removeMatch(${m[0]})" ${disableDelete} title="${disableDelete ? 'Cannot delete match after kickoff' : ''}">❌</button>
+      <button class="remove-match-btn" onclick="removeMatch(${m[0]})" ${disableDelete} title="${disableDelete ? 'Cannot delete match after kickoff' : ''}">ⓧ</button>
     `;
     el.appendChild(div);
   });
@@ -660,40 +693,99 @@ function renderHistory(predictions, matches, showAll = false) {
   const tbody = document.getElementById('historyBody');
   tbody.innerHTML = '';
 
-  // Map match id to details for easy lookup
   const matchMap = {};
-  matches.forEach(m => {
-    matchMap[m[0]] = m;
-  });
+  matches.forEach(m => matchMap[m[0]] = m);
+
   const now = new Date();
 
-  predictions.forEach(p => {
+  function getStatus(match) {
+    const kickoff = new Date(match[3]);
+    const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
+    if (now < kickoff) return 'Upcoming';
+    if (now >= kickoff && now <= kickoffEnd) return 'In Progress';
+    return 'Completed';
+  }
+
+  function statusRank(status) {
+    if (status === 'In Progress') return 1;
+    if (status === 'Completed') return 2;
+    return 3;
+  }
+
+  let filtered = predictions.filter(p => {
+    const match = matchMap[p[0]];
+    if (!match) return false;
+
+    const kickoff = new Date(match[3]);
+    const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
+
+    if (!showAll && now > new Date(kickoffEnd.getTime() + 24 * 60 * 60000)) {
+      return false;
+    }
+    return true;
+  });
+
+  // DEFAULT SORT
+  if (historySortMode === 'default') {
+    filtered.sort((a, b) => {
+      const ma = matchMap[a[0]];
+      const mb = matchMap[b[0]];
+
+      const sa = getStatus(ma);
+      const sb = getStatus(mb);
+
+      const r = statusRank(sa) - statusRank(sb);
+      if (r !== 0) return r;
+
+      const nameA = ma[1] + ' vs ' + ma[2];
+      const nameB = mb[1] + ' vs ' + mb[2];
+      return nameA.localeCompare(nameB);
+    });
+  }
+
+  // USER SORT
+  if (historySortMode === 'user') {
+    filtered.sort((a,b) => historySortAsc
+      ? a[1].localeCompare(b[1])
+      : b[1].localeCompare(a[1])
+    );
+  }
+
+  // MATCH SORT
+  if (historySortMode === 'match') {
+    filtered.sort((a,b) => {
+      const ma = matchMap[a[0]];
+      const mb = matchMap[b[0]];
+      const nameA = ma[1] + ' vs ' + ma[2];
+      const nameB = mb[1] + ' vs ' + mb[2];
+      return historySortAsc
+        ? nameA.localeCompare(nameB)
+        : nameB.localeCompare(nameA);
+    });
+  }
+
+  filtered.forEach(p => {
     const match = matchMap[p[0]];
     if (!match) return;
 
     const kickoff = new Date(match[3]);
     const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
 
-    // Skip predictions of matches completed more than 24h ago if showAll is false
-    if (!showAll && now > new Date(kickoffEnd.getTime() + 24 * 60 * 60000)) {
-      return;
-    }
-
-    const predScore = `${p[2]} - ${p[3]}`;
-
-    // Calculate status
     let status = '';
     if (now < kickoff) status = 'Upcoming';
     else if (now >= kickoff && now <= kickoffEnd) status = 'In Progress';
     else status = 'Completed';
 
-    // Check boosted flag
     const isBoosted = (match.length > 4 && match[4] === 'T');
 
-    // Format time without seconds
     const dt = new Date(p[4]);
-    const timeStr = dt.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const timeStr = dt.toLocaleString(undefined, {
+      year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'
+    });
+
     const tr = document.createElement('tr');
+    if (status === 'In Progress') tr.classList.add('live-row');
+
     tr.innerHTML = `
       <td>${p[1]}</td>
       <td>
@@ -701,12 +793,17 @@ function renderHistory(predictions, matches, showAll = false) {
         <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
         ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
       </td>
-      <td>${predScore}</td>
+      <td>${p[2]} - ${p[3]}</td>
       <td>${timeStr}</td>
     `;
     tbody.appendChild(tr);
   });
 }
+
+document.getElementById('defaultSortBtn').addEventListener('click', () => {
+  historySortMode = 'default';
+  renderHistory(globalData.predictions, globalData.matches, document.getElementById('toggleOldPredictions').checked);
+});
 
 document.getElementById('toggleOldPredictions').addEventListener('change', function() {
   renderHistory(globalData.predictions, globalData.matches, this.checked);
@@ -758,8 +855,8 @@ async function saveAllPredictions() {
 
   const btn = document.getElementById('saveAllBtn');
   btn.disabled = true;
-  btn.textContent = 'Saving...';
-  showLoader('Saving predictions…');
+  btn.textContent = 'Submitting...';
+  showLoader('Submitting predictions…');
 
   for (const [matchId, score] of entries) {
     await post({
@@ -787,7 +884,7 @@ async function saveAllPredictions() {
   renderUserSelect(globalData.users, true);
 
   btn.disabled = false;
-  btn.textContent = '💾 Save All Predictions';
+  btn.textContent = '💾 Submit All';
 
   alert("Predictions saved!");
   hideLoader();
