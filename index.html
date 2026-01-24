@@ -63,6 +63,17 @@ input, select {
   color: var(--text);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 38px;
+  line-height: 18px;
+}
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23acbdd4' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
 }
 input::placeholder {
   color: var(--muted);
@@ -105,7 +116,6 @@ button:disabled {
   display: block !important;
   min-height: auto !important;
   padding: 12px 16px !important;
-}
 }
 table {
   width: 100%;
@@ -204,6 +214,40 @@ hr {
   align-items: center;
   gap: 6px;
 }
+
+.match-actions input[type="number"] {
+  width: 60px;
+  text-align: center;
+}
+
+/* Desktop spacing for form sections */
+#newUser {
+  margin-bottom: 12px;
+}
+#resultMatchSelect {
+  margin-bottom: 0 !important;
+  margin-right: 12px !important;
+  display: inline-block !important;
+  width: 45% !important;
+  vertical-align: top;
+}
+#resultHome {
+  margin-left: 0 !important;
+  margin-right: 12px !important;
+  margin-bottom: 0 !important;
+  width: 15% !important;
+  display: inline-block !important;
+  vertical-align: top;
+}
+#resultAway {
+  margin-left: 0 !important;
+  margin-right: 12px !important;
+  margin-bottom: 0 !important;
+  width: 15% !important;
+  display: inline-block !important;
+  vertical-align: top;
+}
+
 /* Mobile layout fix */
 @media (max-width: 600px) {
   .match {
@@ -214,8 +258,12 @@ hr {
     justify-content: flex-end;
   }
   .match-actions input[type="number"] {
-    width: 42px;
+    width: 60px;
     text-align: center;
+  }
+  /* Space for Save Result button on mobile */
+  .card button[onclick="setResult()"] {
+    margin-top: 12px;
   }
 }
 
@@ -231,16 +279,18 @@ hr {
   border: none;
   color: #022c22;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  width: 36px !important;
+  height: 36px !important;
   border-radius: 50%;
   font-size: 18px;
   line-height: 1;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, transform 0.1s ease;
-  padding: 0;
+  padding: 0 !important;
+  min-height: auto !important;
+  flex-shrink: 0;
 }
 
 .remove-match-btn:hover:not(:disabled) {
@@ -343,7 +393,8 @@ hr {
 #addMatchContainer input[type="text"],
 #addMatchContainer input[type="datetime-local"] {
   flex: 1 1 150px;
-  min-width: 150px;
+  min-width: 170px;
+  max-width: 170px;
   padding: 10px;
   border-radius: 8px;
 }
@@ -364,6 +415,12 @@ hr {
   #boostedContainer {
     margin-left: 0;
     margin-top: 8px;
+  }
+  #addMatchContainer input[type="datetime-local"] {
+    height: 38px !important;
+    max-height: 38px !important;
+    padding: 8px !important;
+    line-height: 22px !important;
   }
 }
 
@@ -400,10 +457,16 @@ tr.live-row > td:first-child {
   transition: all 0.2s ease;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tab-button:hover:not(.active) {
   color: var(--text);
+}
+
+.tab-button:focus {
+  outline: none;
 }
 
 .tab-button.active {
@@ -470,6 +533,23 @@ tr.live-row > td:first-child {
   font-size: 12px;
 }
 
+/* History checkbox styling */
+label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 14px;
+}
+
+label input[type="checkbox"] {
+  cursor: pointer;
+  width: auto;
+  height: auto;
+  accent-color: var(--primary);
+}
+
 </style>
 </head>
 <body>
@@ -481,7 +561,7 @@ tr.live-row > td:first-child {
     <select id="userLoginSelect" autocomplete="off">
       <option value="" disabled selected>Select your username</option>
     </select>
-    <input type="password" id="userPINInput" placeholder="4-digit PIN" autocomplete="off" maxlength="4" />
+    <input type="tel" id="userPINInput" placeholder="Enter PIN" autocomplete="off" maxlength="4" />
     <div id="userLoginError">Invalid username or PIN, try again.</div>
     <button id="userLoginBtn">Login</button>
   </div>
@@ -490,7 +570,7 @@ tr.live-row > td:first-child {
 <!-- Main app container hidden initially -->
 <div id="mainContainer" class="hidden container">
 
-<h1>⚽ Boukkis.cc</h1>
+<h1>⚽ Boukkis</h1>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap;">
   <button id="refreshBtn">
@@ -570,7 +650,7 @@ tr.live-row > td:first-child {
     <div class="card">
       <h3>Add User</h3>
       <input id="newUser" placeholder="Username" />
-      <input id="newUserPIN" placeholder="4-digit PIN" maxlength="4" />
+      <input type="tel" id="newUserPIN" placeholder="Enter PIN" maxlength="4" />
       <button onclick="addUser()">Add</button>
     </div>
 
@@ -584,8 +664,8 @@ tr.live-row > td:first-child {
           <input type="checkbox" id="boosted" class="boosted-checkbox" />
           <label for="boosted" class="boosted-label">Boosted</label>
         </div>
-      </div>
-      <button onclick="addMatch()">Add Match</button>
+        </div>
+        <button onclick="addMatch()">Add Match</button>
     </div>
 
     <div class="card">
@@ -598,8 +678,8 @@ tr.live-row > td:first-child {
       <select id="resultMatchSelect">
         <option value="" disabled selected>Select match</option>
       </select>
-      <input id="resultHome" type="number" min="0" placeholder="Home goals" style="width:60px; margin-left:10px;" />
-      <input id="resultAway" type="number" min="0" placeholder="Away goals" style="width:60px; margin-left:5px;" />
+      <input id="resultHome" type="number" min="0" placeholder="Home goals" />
+      <input id="resultAway" type="number" min="0" placeholder="Away goals" />
       <button onclick="setResult()">Save Result</button>
     </div>
 
@@ -763,14 +843,12 @@ function renderMatches(matches) {
       <div class="match-actions">
         <input id="h-${m[0]}" type="number" min="0"
           ${locked ? 'disabled' : ''}
-          style="width:45px"
           value="${predH}"
           oninput="queuePrediction(${m[0]})"
         />
         -
         <input id="a-${m[0]}" type="number" min="0"
           ${locked ? 'disabled' : ''}
-          style="width:45px"
           value="${predA}"
           oninput="queuePrediction(${m[0]})"
         />
@@ -951,37 +1029,6 @@ document.getElementById('defaultSortBtn').addEventListener('click', () => {
 document.getElementById('toggleOldPredictions').addEventListener('change', function() {
   renderHistory(globalData.predictions, globalData.matches, this.checked);
 });
-
-/* User prediction */
-function predict(id) {
-  const userSelect = document.getElementById('userSelect');
-  const user = userSelect.value;
-  if (!user) {
-    alert("Please select your username");
-    return;
-  }
-  const hInput = document.getElementById(`h-${id}`);
-  const aInput = document.getElementById(`a-${id}`);
-  const h = hInput.value;
-  const a = aInput.value;
-  if (h === '' || a === '') {
-    alert("Please enter both scores");
-    return;
-  }
-  post({ action: 'predict', matchId: id, user, h, a }).then(() => {
-    // After saving, refresh predictions & users for leaderboard & history
-    Promise.all([
-      fetch(API_URL + "?action=predictions").then(r => r.json()),
-      fetch(API_URL + "?action=data").then(r => r.json())
-    ]).then(([predData, data]) => {
-      globalData.predictions = predData.predictions || [];
-      globalData.users = data.users || [];
-      renderLeaderboard(globalData.users);
-      renderHistory(globalData.predictions, globalData.matches);
-      // Do NOT reload matches so input fields keep current values
-    });
-  });
-}
 
 async function saveAllPredictions() {
   if (!currentUser) {
@@ -1226,7 +1273,7 @@ userPINInput.addEventListener('keydown', (e) => {
 function updateUserInfo() {
   const userInfoEl = document.getElementById('userInfo');
   if (currentUser) {
-    userInfoEl.textContent = `Logged in as: ${currentUser}`;
+    userInfoEl.textContent = `Welcome ${currentUser}`;
   }
 }
 
