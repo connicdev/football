@@ -82,6 +82,11 @@ button {
   color: #022c22;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.05s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  min-height: 34px;
 }
 button:hover:not(:disabled) {
   background: #33c86f;
@@ -93,6 +98,14 @@ button:active:not(:disabled) {
 button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Override for tab buttons */
+.tab-button {
+  display: block !important;
+  min-height: auto !important;
+  padding: 12px 16px !important;
+}
 }
 table {
   width: 100%;
@@ -133,7 +146,8 @@ hr {
   margin-bottom: 20px;
   color: var(--secondary);
 }
-#userLoginBox input {
+#userLoginBox input,
+#userLoginBox select {
   width: 100%;
   margin-bottom: 12px;
   font-size: 16px;
@@ -354,12 +368,106 @@ hr {
 }
 
 tr.live-row {
-  border-left: 4px solid #f59e0b; /* same amber as In Progress */
-  background: rgba(245, 158, 11, 0.08);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+tr.live-row > td:first-child {
+  border-left: 4px solid #f59e0b;
+  padding-left: 6px;
 }
 
 #historyBody tr {
   transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+/* Tab Navigation */
+.tabs-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab-button:hover:not(.active) {
+  color: var(--text);
+}
+
+.tab-button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: rgba(61, 219, 110, 0.05);
+  border-radius: 6px 6px 0 0;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Leaderboard styling */
+#leaderboard tbody tr {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#leaderboard tbody tr:hover {
+  background-color: rgba(61, 219, 110, 0.05);
+  transform: translateX(4px);
+}
+
+#leaderboard tbody tr:first-child {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+}
+
+#leaderboard tbody tr:nth-child(2) {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent);
+}
+
+#leaderboard tbody tr:nth-child(3) {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent);
+}
+
+#leaderboard td:first-child {
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+#leaderboard td:last-child {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--primary);
+  text-align: center;
+}
+
+#leaderboard .rank {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(61, 219, 110, 0.2);
+  color: var(--primary);
+  text-align: center;
+  line-height: 28px;
+  font-weight: 700;
+  margin-right: 8px;
+  font-size: 12px;
 }
 
 </style>
@@ -369,9 +477,12 @@ tr.live-row {
 <!-- User Login Overlay -->
 <div id="userLoginOverlay">
   <div id="userLoginBox">
-    <h2>Enter User Password</h2>
-    <input type="password" id="userPassInput" placeholder="User password" autocomplete="off" />
-    <div id="userLoginError">Incorrect password, try again.</div>
+    <h2>Login</h2>
+    <select id="userLoginSelect" autocomplete="off">
+      <option value="" disabled selected>Select your username</option>
+    </select>
+    <input type="password" id="userPINInput" placeholder="4-digit PIN" autocomplete="off" maxlength="4" />
+    <div id="userLoginError">Invalid username or PIN, try again.</div>
     <button id="userLoginBtn">Login</button>
   </div>
 </div>
@@ -381,118 +492,133 @@ tr.live-row {
 
 <h1>⚽ Boukkis.cc ⚽</h1>
 
-<button id="refreshBtn" style="margin-left: 12px; padding: 6px 12px; font-size: 14px; cursor: pointer;">
-  🔄 Refresh
-</button>
-
-<br><br>
-
-<h2>🤔 Submit Your Predictions</h2>
-<div class="card">
-  <label for="userSelect">Select User:</label>
-  <select id="userSelect">
-    <option value="" disabled selected>Select your username</option>
-  </select>
-</div>
-
-<div id="matches"></div>
-
-<div class="card">
-  <button id="saveAllBtn" onclick="saveAllPredictions()">
-    💾 Submit All
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap;">
+  <button id="refreshBtn">
+    🔄 Refresh
   </button>
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+    <div id="userInfo" style="color: var(--secondary); font-weight: 600; white-space: nowrap;"></div>
+    <button id="logoutBtn">
+      Logout
+    </button>
+  </div>
 </div>
 
-<hr>
-
-<h2>🏆 Leaderboard</h2>
-<div class="card">
-  <table>
-    <thead><tr><th>USER</th><th>POINTS</th></tr></thead>
-    <tbody id="leaderboard"></tbody>
-  </table>
+<!-- Tab Navigation -->
+<div class="tabs-nav">
+  <button class="tab-button active" data-tab="predictions-tab">🤔 Predictions</button>
+  <button class="tab-button" data-tab="leaderboard-tab">🏆 Leaderboard</button>
+  <button class="tab-button" data-tab="history-tab">🗒️ History</button>
+  <button class="tab-button" data-tab="admin-tab">⚙️ Admin</button>
 </div>
 
-<hr>
-
-<h2>🗒️ Predictions</h2>
-<div class="card">
-  <button id="defaultSortBtn" style="margin-bottom:10px;">⇅ Sort</button>
-  <table id="historyTable">
-    <thead>
-      <tr>
-        <th onclick="sortHistory('user')" style="cursor:pointer">USER ⬍</th>
-        <th onclick="sortHistory('match')" style="cursor:pointer">MATCH ⬍</th>
-        <th>SCORE</th>
-        <th>TIME</th>
-      </tr>
-    </thead>
-    <tbody id="historyBody"></tbody>
-  </table>
-</div>
-
-<div style="margin-bottom: 12px;">
-  <label>
-    <input type="checkbox" id="toggleOldPredictions" />
-    Show Archived
-  </label>
-</div>
-
-<hr>
-
-<h2>⚙️ Admin</h2>
-<div id="login" class="card">
-  <input id="adminPass" type="password" placeholder="Admin password" autocomplete="off" />
-  <button onclick="login()">Login</button>
-</div>
-
-<div id="admin" class="hidden">
+<!-- Predictions Tab -->
+<div id="predictions-tab" class="tab-content active">
+  <div id="matches"></div>
 
   <div class="card">
-    <h3>Add User</h3>
-    <input id="newUser" placeholder="Username" />
-    <button onclick="addUser()">Add</button>
+    <button id="saveAllBtn" onclick="saveAllPredictions()">
+      💾 Submit All
+    </button>
+  </div>
+</div>
+
+<!-- Leaderboard Tab -->
+<div id="leaderboard-tab" class="tab-content">
+  <div class="card">
+    <table>
+      <thead><tr><th>USER</th><th>POINTS</th></tr></thead>
+      <tbody id="leaderboard"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- History Tab -->
+<div id="history-tab" class="tab-content">
+  <div class="card">
+    <button id="defaultSortBtn" style="margin-bottom:10px;">⇅ Sort</button>
+    <table id="historyTable">
+      <thead>
+        <tr>
+          <th onclick="sortHistory('user')" style="cursor:pointer">USER ⬍</th>
+          <th onclick="sortHistory('match')" style="cursor:pointer">MATCH ⬍</th>
+          <th>SCORE</th>
+          <th>TIME</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody"></tbody>
+    </table>
   </div>
 
-  <div class="card">
-    <h3>Add Match</h3>
-    <div id="addMatchContainer">
-      <input id="home" placeholder="Home team" />
-      <input id="away" placeholder="Away team" />
-      <input id="time" type="datetime-local" />
-      <div id="boostedContainer">
-        <input type="checkbox" id="boosted" class="boosted-checkbox" />
-        <label for="boosted" class="boosted-label">Boosted</label>
-      </div>
+  <div style="margin-bottom: 12px;">
+    <label>
+      <input type="checkbox" id="toggleOldPredictions" />
+      Show Archived
+    </label>
+  </div>
+</div>
+
+<!-- Admin Tab -->
+<div id="admin-tab" class="tab-content">
+  <div id="login" class="card">
+    <input id="adminPass" type="password" placeholder="Admin password" autocomplete="off" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div id="admin" class="hidden">
+
+    <div class="card">
+      <h3>Add User</h3>
+      <input id="newUser" placeholder="Username" />
+      <input id="newUserPIN" placeholder="4-digit PIN" maxlength="4" />
+      <button onclick="addUser()">Add</button>
     </div>
-    <button onclick="addMatch()">Add Match</button>
-  </div>
 
-  <div class="card">
-    <h3>Delete Matches</h3>
-    <div id="adminMatches"></div>
-  </div>
+    <div class="card">
+      <h3>Add Match</h3>
+      <div id="addMatchContainer">
+        <input id="home" placeholder="Home team" />
+        <input id="away" placeholder="Away team" />
+        <input id="time" type="datetime-local" />
+        <div id="boostedContainer">
+          <input type="checkbox" id="boosted" class="boosted-checkbox" />
+          <label for="boosted" class="boosted-label">Boosted</label>
+        </div>
+      </div>
+      <button onclick="addMatch()">Add Match</button>
+    </div>
 
-  <div class="card">
-    <h3>Set Match Result</h3>
-    <select id="resultMatchSelect">
-      <option value="" disabled selected>Select match</option>
-    </select>
-    <input id="resultHome" type="number" min="0" placeholder="Home goals" style="width:60px; margin-left:10px;" />
-    <input id="resultAway" type="number" min="0" placeholder="Away goals" style="width:60px; margin-left:5px;" />
-    <button onclick="setResult()">Save Result</button>
-  </div>
+    <div class="card">
+      <h3>Delete Matches</h3>
+      <div id="adminMatches"></div>
+    </div>
 
+    <div class="card">
+      <h3>Set Match Result</h3>
+      <select id="resultMatchSelect">
+        <option value="" disabled selected>Select match</option>
+      </select>
+      <input id="resultHome" type="number" min="0" placeholder="Home goals" style="width:60px; margin-left:10px;" />
+      <input id="resultAway" type="number" min="0" placeholder="Away goals" style="width:60px; margin-left:5px;" />
+      <button onclick="setResult()">Save Result</button>
+    </div>
+
+  </div>
 </div>
 
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzRYls8N13HeCqOmqjbSjYdUQGSHXeMZYa0etEbfFIW9MV6oQLsEq8ouA5G-KrzAHk8/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzKxqPTlMBvCuwq6RTdnNZlZEGNeUyrrDaHTHYttb-qblvo5ryMgDwtI8DJmIYvFHZU/exec";
 
 let pendingPredictions = {};
 let historySortMode = 'default'; // 'default' | 'user' | 'match'
 let historySortAsc = true;
+
+// Global authentication state
+let currentUser = null;
+let currentUserPIN = null;
+let isAdmin = false;
 
 let globalData = {
   users: [],
@@ -537,6 +663,17 @@ function post(data) {
   }).then(r => r.json());
 }
 
+/* Load users only for login dropdown */
+async function loadLoginUsers() {
+  try {
+    const data = await fetch(API_URL + "?action=data").then(r => r.json());
+    globalData.users = data.users || [];
+    populateLoginUserSelect(globalData.users);
+  } catch (e) {
+    console.error('Failed to load users:', e);
+  }
+}
+
 /* Load all data */
 async function load() {
   showLoader('Loading data…');
@@ -554,7 +691,7 @@ async function load() {
     globalData.predictions = [];
   }
 
-  renderUserSelect(globalData.users, false);
+  populateLoginUserSelect(globalData.users);
   renderMatches(globalData.matches);
   renderLeaderboard(globalData.users);
   renderAdminMatches(globalData.matches);
@@ -564,25 +701,18 @@ async function load() {
 }
 
 
-/* Render user dropdown */
-function renderUserSelect(users, keepSelection = false) {
-  const select = document.getElementById('userSelect');
-  let currentValue = keepSelection ? select.value : '';
-
+/* Populate login user dropdown */
+function populateLoginUserSelect(users) {
+  const select = document.getElementById('userLoginSelect');
   select.innerHTML = '<option value="" disabled selected>Select your username</option>';
   users.forEach(u => {
-    const selected = (u[0] === currentValue) ? 'selected' : '';
-    select.innerHTML += `<option value="${u[0]}" ${selected}>${u[0]}</option>`;
+    select.innerHTML += `<option value="${u[0]}">${u[0]}</option>`;
   });
-
-  if (!keepSelection) {
-    select.value = '';
-  }
 }
 
 /* Listen for user selection to save */
-document.getElementById('userSelect').addEventListener('change', function() {
-  localStorage.setItem('selectedUser', this.value);
+document.getElementById('userLoginSelect').addEventListener('change', function() {
+  localStorage.setItem('lastUser', this.value);
 });
 
 
@@ -594,10 +724,9 @@ function renderMatches(matches) {
   const now = new Date();
 
   // Map predictions by user and match for quick lookup
-  const user = document.getElementById('userSelect').value;
   const userPredictions = {};
   globalData.predictions.forEach(p => {
-    if(p[1] === user) userPredictions[p[0]] = p;
+    if(p[1] === currentUser) userPredictions[p[0]] = p;
   });
 
   matches.forEach(m => {
@@ -665,8 +794,14 @@ function renderLeaderboard(users) {
   const el = document.getElementById('leaderboard');
   el.innerHTML = '';
   // Sort descending by points
-  users.sort((a,b) => b[1] - a[1]).forEach(u => {
-    el.innerHTML += `<tr><td>${u[0]}</td><td>${u[1]}</td></tr>`;
+  const sorted = users.slice().sort((a,b) => b[1] - a[1]);
+  const medals = ['🥇', '🥈', '🥉'];
+  
+  sorted.forEach((u, idx) => {
+    const medal = medals[idx] || '';
+    const rankNum = idx + 1;
+    const rankBadge = `<span class="rank">${rankNum}</span>`;
+    el.innerHTML += `<tr><td>${medal} ${rankBadge}${u[0]}</td><td>${u[1]}</td></tr>`;
   });
 }
 
@@ -718,6 +853,14 @@ function renderHistory(predictions, matches, showAll = false) {
 
     const kickoff = new Date(match[3]);
     const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
+
+    // Regular users: only see their own predictions, UNLESS match is in progress or completed
+    const matchStatus = getStatus(matchMap[p[0]]);
+    if (matchStatus === 'Upcoming') {
+      // Only see own upcoming predictions
+      if (p[1] !== currentUser) return false;
+    }
+    // For in-progress and completed, all predictions are visible
 
     if (!showAll && now > new Date(kickoffEnd.getTime() + 24 * 60 * 60000)) {
       return false;
@@ -841,9 +984,8 @@ function predict(id) {
 }
 
 async function saveAllPredictions() {
-  const user = document.getElementById('userSelect').value;
-  if (!user) {
-    alert("Please select your username");
+  if (!currentUser) {
+    alert("Please login first");
     return;
   }
 
@@ -862,7 +1004,7 @@ async function saveAllPredictions() {
     await post({
       action: 'predict',
       matchId,
-      user,
+      user: currentUser,
       h: score.h,
       a: score.a
     });
@@ -881,7 +1023,7 @@ async function saveAllPredictions() {
 
   renderLeaderboard(globalData.users);
   renderHistory(globalData.predictions, globalData.matches);
-  renderUserSelect(globalData.users, true);
+  renderMatches(globalData.matches);
 
   btn.disabled = false;
   btn.textContent = '💾 Submit All';
@@ -891,11 +1033,8 @@ async function saveAllPredictions() {
 }
 
 /* When user changes, pre-fill predictions */
-document.getElementById('userSelect').addEventListener('change', () => {
-  showLoader('Loading predictions…');
-  localStorage.setItem('selectedUser', document.getElementById('userSelect').value);
-  renderMatches(globalData.matches);
-  hideLoader();
+document.getElementById('userLoginSelect').addEventListener('change', () => {
+  localStorage.setItem('lastUser', document.getElementById('userLoginSelect').value);
 });
 
 /* Admin login */
@@ -917,12 +1056,19 @@ function login() {
 function addUser() {
   showLoader('Saving user…');
   const newUser = document.getElementById('newUser');
+  const newUserPIN = document.getElementById('newUserPIN');
+  
   if (!newUser.value) return alert("Enter username");
-  post({ action: 'addUser', user: newUser.value }).then(() => {
+  if (!newUserPIN.value || newUserPIN.value.length !== 4 || isNaN(newUserPIN.value)) {
+    return alert("PIN must be 4 digits");
+  }
+  
+  post({ action: 'addUser', user: newUser.value, pin: newUserPIN.value }).then(() => {
     newUser.value = '';
+    newUserPIN.value = '';
     load();
+    hideLoader();
   });
-  hideLoader();
 }
 
 /* Add match */
@@ -1007,57 +1153,104 @@ function setResult() {
   });
 }
 
-/* Check user password via API */
-async function checkUserPassword(password) {
-  try {
-    const res = await post({ action: 'userLogin', password });
-    return res.ok === true;
-  } catch {
-    return false;
-  }
-}
-
 /* User login overlay elements */
 const userLoginOverlay = document.getElementById('userLoginOverlay');
-const userPassInput = document.getElementById('userPassInput');
+const userLoginSelect = document.getElementById('userLoginSelect');
+const userPINInput = document.getElementById('userPINInput');
 const userLoginBtn = document.getElementById('userLoginBtn');
 const userLoginError = document.getElementById('userLoginError');
 
 userLoginBtn.onclick = async () => {
-  const pass = userPassInput.value.trim();
-  if (!pass) {
-    alert("Please enter user password");
+  const username = userLoginSelect.value;
+  const pin = userPINInput.value.trim();
+  
+  if (!username) {
+    alert("Please select your username");
     return;
   }
+  
+  if (!pin) {
+    alert("Please enter your PIN");
+    return;
+  }
+  
+  if (pin.length !== 4 || isNaN(pin)) {
+    alert("PIN must be 4 digits");
+    return;
+  }
+
   userLoginError.style.display = 'none';
   userLoginBtn.disabled = true;
 
-  const valid = await checkUserPassword(pass);
+  // Validate PIN server-side
+  const valid = await post({ action: 'userLogin', username, pin });
+
+  if (!valid.ok) {
+    userLoginBtn.disabled = false;
+    userLoginError.style.display = 'block';
+    userPINInput.value = '';
+    userPINInput.focus();
+    return;
+  }
+
+  // Login successful
+  currentUser = username;
+  currentUserPIN = pin;
+  isAdmin = false; // Regular user login, not admin
+
+  // Hide login overlay
+  userLoginOverlay.style.display = 'none';
+  // Show main container
+  document.getElementById('mainContainer').classList.remove('hidden');
+
+  // Restore scrolling and height on body
+  document.body.style.overflow = 'auto';
+  document.body.style.height = 'auto';
+
+  // Update user info display
+  updateUserInfo();
 
   userLoginBtn.disabled = false;
 
-  if (valid) {
-    // Hide login overlay
-    userLoginOverlay.style.display = 'none';
-    // Show main container
-    document.getElementById('mainContainer').classList.remove('hidden');
-
-    // Restore scrolling and height on body
-    document.body.style.overflow = 'auto';
-    document.body.style.height = 'auto';
-
-    load();
-  } else {
-    userLoginError.style.display = 'block';
-    userPassInput.value = '';
-    userPassInput.focus();
-  }
+  load();
 };
 
-/* Press Enter key on user password input triggers login */
-userPassInput.addEventListener('keydown', (e) => {
+/* Press Enter key on PIN input triggers login */
+userPINInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     userLoginBtn.click();
+  }
+});
+
+/* Update user info in header */
+function updateUserInfo() {
+  const userInfoEl = document.getElementById('userInfo');
+  if (currentUser) {
+    userInfoEl.textContent = `Logged in as: ${currentUser}`;
+  }
+}
+
+/* Logout function */
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  if (confirm('Are you sure you want to logout?')) {
+    currentUser = null;
+    currentUserPIN = null;
+    isAdmin = false;
+    pendingPredictions = {};
+    
+    // Hide main container
+    document.getElementById('mainContainer').classList.add('hidden');
+    // Show login overlay
+    userLoginOverlay.style.display = 'flex';
+    
+    // Clear inputs
+    userLoginSelect.value = '';
+    userPINInput.value = '';
+    userLoginError.style.display = 'none';
+    
+    // Allow body scroll again
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
   }
 });
 
@@ -1070,6 +1263,39 @@ document.getElementById('adminPass').addEventListener('keydown', (e) => {
 document.getElementById('refreshBtn').addEventListener('click', () => {
   showLoader('Reloading data…');
   load().then(() => {
+    hideLoader();
+  });
+});
+
+/* Tab switching */
+document.querySelectorAll('.tab-button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.getAttribute('data-tab');
+    
+    // Remove active class from all buttons and contents
+    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    // Add active class to clicked button and corresponding content
+    btn.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    
+    // Save preference
+    localStorage.setItem('activeTab', tabId);
+  });
+});
+
+// Restore active tab on page load
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTab = localStorage.getItem('activeTab') || 'predictions-tab';
+  const tabBtn = document.querySelector(`[data-tab="${savedTab}"]`);
+  if (tabBtn) {
+    tabBtn.click();
+  }
+  
+  // Show loader and load users for login dropdown
+  showLoader('Loading users…');
+  loadLoginUsers().then(() => {
     hideLoader();
   });
 });
