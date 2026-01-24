@@ -1173,9 +1173,10 @@ function renderResultMatchSelect(matches, results) {
 
   matches.forEach(m => {
     const kickoff = new Date(m[3]);
+    const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
     const matchIdStr = m[0].toString();
-    // Only if kickoff passed AND no result exists yet
-    if (now >= kickoff && !matchesWithResults.has(matchIdStr)) {
+    // Only if kickoff + 120 mins passed AND no result exists yet
+    if (now >= kickoffEnd && !matchesWithResults.has(matchIdStr)) {
       const label = `${m[1]} vs ${m[2]} (${kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})})`;
       const selected = (matchIdStr === currentValue) ? 'selected' : '';
       select.innerHTML += `<option value="${m[0]}" ${selected}>${label}</option>`;
