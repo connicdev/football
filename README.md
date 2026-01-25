@@ -1,1 +1,2 @@
-Football Prediction System using HTML, CSS, JS.
+Football Prediction System with ranking system.
+Built using HTML, CSS, JS.
