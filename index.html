@@ -1,846 +1,890 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<title>Boukkis</title>
-<link rel="icon" href="favicon.ico" type="image/x-icon" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-:root {
-  --bg: #0f172a;
-  --card: #1e2a47;
-  --primary: #3ddb6e;       /* bright green buttons */
-  --secondary: #acbdd4;     /* slate blue accent */
-  --text: #f0f4f8;
-  --muted: #7a8a9e;
-}
+  <meta charset="UTF-8" />
+  <title>Boukkis</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e2a47;
+      --primary: #3ddb6e; /* bright green buttons */
+      --secondary: #acbdd4; /* slate blue accent */
+      --text: #f0f4f8;
+      --muted: #7a8a9e;
+    }
 
-* {
-  box-sizing: border-box;
-}
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: linear-gradient(135deg, #020617, var(--bg));
-  color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-}
-.container {
-  max-width: 1000px;
-  margin: auto;
-  padding: 20px;
-}
-h1, h2 {
-  margin: 16px 0;
-  color: var(--secondary);
-}
-.card {
-  background: var(--card);
-  padding: 16px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-}
-.match {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.locked {
-  opacity: 0.5;
-}
-.hidden {
-  display: none;
-}
-input, select {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  font-size: 14px;
-  background: #16213a;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  height: 38px;
-  line-height: 18px;
-}
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23acbdd4' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 30px;
-}
-input::placeholder {
-  color: var(--muted);
-}
-input:focus,
-select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(61, 219, 110, 0.25);
-}
-button {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  font-size: 14px;
-  font-weight: 700;
-  background: var(--primary);
-  color: #022c22;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.05s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  min-height: 34px;
-}
-button:hover:not(:disabled) {
-  background: #33c86f;
-  transform: translateY(-1px);
-}
-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-/* Override for tab buttons */
-.tab-button {
-  display: block !important;
-  min-height: auto !important;
-  padding: 12px 16px !important;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th, td {
-  padding: 10px;
-}
-th {
-  color: var(--secondary);
-  text-align: left;
-}
-hr {
-  border: none;
-  border-top: 1px solid var(--card);
-  margin: 30px 0;
-}
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg, #020617, var(--bg));
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
 
-/* User login overlay */
-#userLoginOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.95);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-#userLoginBox {
-  background: var(--card);
-  padding: 30px 40px;
-  border-radius: 16px;
-  text-align: center;
-  max-width: 320px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-}
-#userLoginBox h2 {
-  margin-bottom: 20px;
-  color: var(--secondary);
-}
-#userLoginBox input,
-#userLoginBox select {
-  width: 100%;
-  margin-bottom: 12px;
-  font-size: 16px;
-}
-#userLoginBox button {
-  width: 100%;
-}
-#userLoginError {
-  color: #ff6b6b;
-  margin-bottom: 12px;
-  display: none;
-  font-weight: 600;
-}
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
 
-/* Keep main container hidden initially */
-#mainContainer.hidden {
-  display: none;
-}
+    h1,
+    h2 {
+      margin: 16px 0;
+      color: var(--secondary);
+    }
 
-#loader {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.85);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-}
-#loader.hidden {
-  display: none;
-}
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.9s linear infinite;
-  margin-bottom: 12px;
-}
-.loader-text {
-  color: var(--secondary);
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.match-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+    .card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
 
-.match-actions input[type="number"] {
-  width: 60px;
-  text-align: center;
-}
+    .match {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
 
-/* Desktop spacing for form sections */
-#newUser {
-  margin-bottom: 12px;
-}
-#resultMatchSelect {
-  margin-bottom: 0 !important;
-  margin-right: 12px !important;
-  display: inline-block !important;
-  width: 40% !important;
-  vertical-align: top;
-}
-#resultHome {
-  margin-left: 0 !important;
-  margin-right: 12px !important;
-  margin-bottom: 0 !important;
-  width: 20% !important;
-  display: inline-block !important;
-  vertical-align: top;
-}
-#resultAway {
-  margin-left: 0 !important;
-  margin-right: 12px !important;
-  margin-bottom: 0 !important;
-  width: 20% !important;
-  display: inline-block !important;
-  vertical-align: top;
-}
+    .locked {
+      opacity: 0.5;
+    }
 
-/* Mobile layout fix */
-@media (max-width: 600px) {
-  .match {
-    align-items: flex-start;
-  }
-  .match-actions {
-    margin-left: auto;       /* pushes inputs to the right */
-    justify-content: flex-end;
-  }
-  .match-actions input[type="number"] {
-    width: 60px;
-    text-align: center;
-  }
-  /* Space for Save Result button on mobile */
-  .card button[onclick="setResult()"] {
-    margin-top: 12px;
-  }
-}
+    .hidden {
+      display: none;
+    }
 
-#adminMatches > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
+    input,
+    select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      font-size: 14px;
+      background: #16213a;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      height: 38px;
+      line-height: 18px;
+    }
 
-.remove-match-btn {
-  background: var(--primary);
-  border: none;
-  color: #022c22;
-  cursor: pointer;
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 50%;
-  font-size: 18px;
-  line-height: 1;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  padding: 0 !important;
-  min-height: auto !important;
-  flex-shrink: 0;
-}
+    select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23acbdd4' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
 
-.remove-match-btn:hover:not(:disabled) {
-  background: #33c86f;
-  transform: translateY(-2px);
-}
+    input::placeholder {
+      color: var(--muted);
+    }
 
-.remove-match-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(61, 219, 110, 0.25);
+    }
 
-.remove-match-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+    button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      background: var(--primary);
+      color: #022c22;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.05s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      min-height: 34px;
+    }
 
-@media (max-width: 600px) {
-  #historyTable thead th:nth-child(4),
-  #historyTable tbody td:nth-child(4) {
-    display: none;
-  }
-}
+    button:hover:not(:disabled) {
+      background: #33c86f;
+      transform: translateY(-1px);
+    }
 
-.status {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  user-select: none;
-  cursor: default;
-}
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
 
-.status.upcoming {
-  background-color: #3b82f6; /* Blue-500 */
-  color: white;
-}
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
 
-.status.inprogress {
-  background-color: #f59e0b; /* Amber-500 */
-  color: white;
-}
+    /* Override for tab buttons */
+    .tab-button {
+      display: block !important;
+      min-height: auto !important;
+      padding: 12px 16px !important;
+    }
 
-.status.completed {
-  background-color: #10b981; /* Emerald-500 */
-  color: white;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-.boosted-tag {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 3px 8px;
-  background-color: #ef4444; /* red */
-  color: white;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  user-select: none;
-}
+    th,
+    td {
+      padding: 10px;
+    }
 
-/* Style for the boosted checkbox label to match the boosted tag */
-.boosted-label {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 3px 8px;
-  background-color: #ef4444; /* same red as .boosted-tag */
-  color: white;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  user-select: none;
-  cursor: pointer;
-  vertical-align: middle;
-}
+    th {
+      color: var(--secondary);
+      text-align: left;
+    }
 
-/* Optional: style the checkbox itself to better fit */
-.boosted-checkbox {
-  margin-left: 10px;
-  vertical-align: middle;
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-  accent-color: #ef4444; /* modern CSS to color checkbox */
-}
+    hr {
+      border: none;
+      border-top: 1px solid var(--card);
+      margin: 30px 0;
+    }
 
-/* Container for the add match inputs and boosted */
-#addMatchContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 15px;
-}
+    /* User login overlay */
+    #userLoginOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
 
-/* Inputs grow evenly */
-#addMatchContainer input[type="text"],
-#addMatchContainer input[type="datetime-local"] {
-  flex: 1 1 150px;
-  min-width: 170px;
-  max-width: 170px;
-  padding: 10px;
-  border-radius: 8px;
-}
+    #userLoginBox {
+      background: var(--card);
+      padding: 30px 40px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 320px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    }
 
-/* Container for boosted checkbox + label */
-#boostedContainer {
-  display: flex;
-  align-items: center;
-  margin-left: 12px;
-}
+    #userLoginBox h2 {
+      margin-bottom: 20px;
+      color: var(--secondary);
+    }
 
-/* On mobile, stack boosted below datetime */
-@media (max-width: 600px) {
-  #addMatchContainer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  #boostedContainer {
-    margin-left: 0;
-    margin-top: 8px;
-  }
-  #addMatchContainer input[type="datetime-local"] {
-    height: 38px !important;
-    max-height: 38px !important;
-    padding: 8px !important;
-    line-height: 22px !important;
-  }
-}
+    #userLoginBox input,
+    #userLoginBox select {
+      width: 100%;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
 
-tr.live-row {
-  background: rgba(245, 158, 11, 0.1);
-}
+    #userLoginBox button {
+      width: 100%;
+    }
 
-tr.live-row > td:first-child {
-  border-left: 4px solid #f59e0b;
-  padding-left: 6px;
-}
+    #userLoginError {
+      color: #ff6b6b;
+      margin-bottom: 12px;
+      display: none;
+      font-weight: 600;
+    }
 
-#historyBody tr {
-  transition: transform 0.25s ease, background-color 0.25s ease;
-}
+    /* Keep main container hidden initially */
+    #mainContainer.hidden {
+      display: none;
+    }
 
-/* Tab Navigation */
-.tabs-nav {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  flex-wrap: wrap;
-}
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
 
-.tab-button {
-  padding: 12px 16px;
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-appearance: none;
-  appearance: none;
-}
+    #loader.hidden {
+      display: none;
+    }
 
-.tab-button:hover:not(.active) {
-  color: var(--text);
-}
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 12px;
+    }
 
-.tab-button:focus {
-  outline: none;
-  background: transparent !important;
-}
+    .loader-text {
+      color: var(--secondary);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
 
-.tab-button.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-  background: rgba(61, 219, 110, 0.05);
-  border-radius: 6px 6px 0 0;
-    background: transparent !important;
-}
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
-.tab-content {
-  display: none;
-}
+    .match-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-.tab-content.active {
-  display: block;
-}
+    .match-actions input[type="number"] {
+      width: 60px;
+      text-align: center;
+    }
 
-/* Leaderboard styling */
-#leaderboard tbody tr {
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
+    /* Desktop spacing for form sections */
+    #newUser {
+      margin-bottom: 12px;
+    }
 
-#leaderboard tbody tr:hover {
-  background-color: rgba(61, 219, 110, 0.05);
-  transform: translateX(4px);
-}
+    #resultMatchSelect {
+      margin-bottom: 0 !important;
+      margin-right: 12px !important;
+      display: inline-block !important;
+      width: 40% !important;
+      vertical-align: top;
+    }
 
-#leaderboard tbody tr:first-child {
-  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
-}
+    #resultHome {
+      margin-left: 0 !important;
+      margin-right: 12px !important;
+      margin-bottom: 0 !important;
+      width: 20% !important;
+      display: inline-block !important;
+      vertical-align: top;
+    }
 
-#leaderboard tbody tr:nth-child(2) {
-  background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent);
-}
+    #resultAway {
+      margin-left: 0 !important;
+      margin-right: 12px !important;
+      margin-bottom: 0 !important;
+      width: 20% !important;
+      display: inline-block !important;
+      vertical-align: top;
+    }
 
-#leaderboard tbody tr:nth-child(3) {
-  background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent);
-}
+    /* Mobile layout fix */
+    @media (max-width: 600px) {
+      .match {
+        align-items: flex-start;
+      }
 
-#leaderboard td:first-child {
-  font-weight: 600;
-  color: var(--secondary);
-}
+      .match-actions {
+        margin-left: auto; /* pushes inputs to the right */
+        justify-content: flex-end;
+      }
 
-#leaderboard td:last-child {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--primary);
-  text-align: center;
-}
+      .match-actions input[type="number"] {
+        width: 60px;
+        text-align: center;
+      }
 
-#leaderboard .rank {
-  display: inline-block;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(61, 219, 110, 0.2);
-  color: var(--primary);
-  text-align: center;
-  line-height: 28px;
-  font-weight: 700;
-  margin-right: 8px;
-  font-size: 12px;
-}
+      /* Space for Save Result button on mobile */
+      .card button[onclick="setResult()"] {
+        margin-top: 12px;
+      }
+    }
 
-/* History checkbox styling */
-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  color: var(--text);
-  font-size: 14px;
-}
+    #adminMatches > div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
 
-label input[type="checkbox"] {
-  cursor: pointer;
-  width: auto;
-  height: auto;
-  accent-color: var(--primary);
-}
+    .remove-match-btn {
+      background: var(--primary);
+      border: none;
+      color: #022c22;
+      cursor: pointer;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50%;
+      font-size: 18px;
+      line-height: 1;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      padding: 0 !important;
+      min-height: auto !important;
+      flex-shrink: 0;
+    }
 
-</style>
+    .remove-match-btn:hover:not(:disabled) {
+      background: #33c86f;
+      transform: translateY(-2px);
+    }
+
+    .remove-match-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .remove-match-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+      #historyTable thead th:nth-child(4),
+      #historyTable tbody td:nth-child(4) {
+        display: none;
+      }
+    }
+
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      user-select: none;
+      cursor: default;
+    }
+
+    .status.upcoming {
+      background-color: #3b82f6; /* Blue-500 */
+      color: white;
+    }
+
+    .status.inprogress {
+      background-color: #f59e0b; /* Amber-500 */
+      color: white;
+    }
+
+    .status.completed {
+      background-color: #10b981; /* Emerald-500 */
+      color: white;
+    }
+
+    .boosted-tag {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 3px 8px;
+      background-color: #ef4444; /* red */
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    /* Style for the boosted checkbox label to match the boosted tag */
+    .boosted-label {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 3px 8px;
+      background-color: #ef4444; /* same red as .boosted-tag */
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      user-select: none;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+
+    /* Optional: style the checkbox itself to better fit */
+    .boosted-checkbox {
+      margin-left: 10px;
+      vertical-align: middle;
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      accent-color: #ef4444; /* modern CSS to color checkbox */
+    }
+
+    /* Container for the add match inputs and boosted */
+    #addMatchContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    /* Inputs grow evenly */
+    #addMatchContainer input[type="text"],
+    #addMatchContainer input[type="datetime-local"] {
+      flex: 1 1 150px;
+      min-width: 170px;
+      max-width: 170px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    /* Container for boosted checkbox + label */
+    #boostedContainer {
+      display: flex;
+      align-items: center;
+      margin-left: 12px;
+    }
+
+    /* On mobile, stack boosted below datetime */
+    @media (max-width: 600px) {
+      #addMatchContainer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #boostedContainer {
+        margin-left: 0;
+        margin-top: 8px;
+      }
+
+      #addMatchContainer input[type="datetime-local"] {
+        height: 38px !important;
+        max-height: 38px !important;
+        padding: 8px !important;
+        line-height: 22px !important;
+      }
+    }
+
+    tr.live-row {
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    tr.live-row > td:first-child {
+      border-left: 4px solid #f59e0b;
+      padding-left: 6px;
+    }
+
+    #historyBody tr {
+      transition: transform 0.25s ease, background-color 0.25s ease;
+    }
+
+    /* Tab Navigation */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+    }
+
+    .tab-button {
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .tab-button:hover:not(.active) {
+      color: var(--text);
+    }
+
+    .tab-button:focus {
+      outline: none;
+      background: transparent !important;
+    }
+
+    .tab-button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: rgba(61, 219, 110, 0.05);
+      border-radius: 6px 6px 0 0;
+      background: transparent !important;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Leaderboard styling */
+    #leaderboard tbody tr {
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #leaderboard tbody tr:hover {
+      background-color: rgba(61, 219, 110, 0.05);
+      transform: translateX(4px);
+    }
+
+    #leaderboard tbody tr:first-child {
+      background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+    }
+
+    #leaderboard tbody tr:nth-child(2) {
+      background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent);
+    }
+
+    #leaderboard tbody tr:nth-child(3) {
+      background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent);
+    }
+
+    #leaderboard td:first-child {
+      font-weight: 600;
+      color: var(--secondary);
+    }
+
+    #leaderboard td:last-child {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    #leaderboard .rank {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(61, 219, 110, 0.2);
+      color: var(--primary);
+      text-align: center;
+      line-height: 28px;
+      font-weight: 700;
+      margin-right: 8px;
+      font-size: 12px;
+    }
+
+    /* History checkbox styling */
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    label input[type="checkbox"] {
+      cursor: pointer;
+      width: auto;
+      height: auto;
+      accent-color: var(--primary);
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- User Login Overlay -->
-<div id="userLoginOverlay">
-  <div id="userLoginBox">
-    <h2>Login</h2>
-    <select id="userLoginSelect" autocomplete="off">
-      <option value="" disabled selected>Select your username</option>
-    </select>
-    <input type="tel" id="userPINInput" placeholder="Enter PIN" autocomplete="off" maxlength="4" />
-    <div id="userLoginError">Invalid username or PIN, try again.</div>
-    <button id="userLoginBtn">Login</button>
-  </div>
-</div>
-
-<!-- Main app container hidden initially -->
-<div id="mainContainer" class="hidden container">
-
-<h1>⚽ Boukkis</h1>
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap;">
-  <button id="refreshBtn">
-    🔄 Refresh
-  </button>
-  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-    <div id="userInfo" style="color: var(--secondary); font-weight: 600; white-space: nowrap;"></div>
-    <button id="logoutBtn">
-      Logout
-    </button>
-  </div>
-</div>
-
-<!-- Tab Navigation -->
-<div class="tabs-nav">
-  <button class="tab-button active" data-tab="predictions-tab">Play</button>
-  <button class="tab-button" data-tab="leaderboard-tab">Rankings</button>
-  <button class="tab-button" data-tab="history-tab">History</button>
-  <button class="tab-button" data-tab="admin-tab">Admin</button>
-</div>
-
-<!-- Predictions Tab -->
-<div id="predictions-tab" class="tab-content active">
-  <div id="matches"></div>
-
-  <div class="card">
-    <button id="saveAllBtn" onclick="saveAllPredictions()">
-      💾 Submit All
-    </button>
-  </div>
-</div>
-
-<!-- Leaderboard Tab -->
-<div id="leaderboard-tab" class="tab-content">
-  <div class="card">
-    <table>
-      <thead><tr><th>USER</th><th>POINTS</th></tr></thead>
-      <tbody id="leaderboard"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- History Tab -->
-<div id="history-tab" class="tab-content">
-  <div class="card">
-    <button id="defaultSortBtn" style="margin-bottom:10px;">⇅ Sort</button>
-    <table id="historyTable">
-      <thead>
-        <tr>
-          <th onclick="sortHistory('user')" style="cursor:pointer">USER ⬍</th>
-          <th onclick="sortHistory('match')" style="cursor:pointer">MATCH ⬍</th>
-          <th>SCORE</th>
-          <th>TIME</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody"></tbody>
-    </table>
-  </div>
-
-  <div style="margin-bottom: 12px;">
-    <label>
-      <input type="checkbox" id="toggleOldPredictions" />
-      Show Archived
-    </label>
-  </div>
-</div>
-
-<!-- Admin Tab -->
-<div id="admin-tab" class="tab-content">
-  <div id="login" class="card">
-    <input id="adminPass" type="password" placeholder="Admin password" autocomplete="off" />
-    <button onclick="login()">Login</button>
-  </div>
-
-  <div id="admin" class="hidden">
-
-    <div class="card">
-      <h3>Add User</h3>
-        <input id="newUser" placeholder="Username" />
-        <input type="tel" id="newUserPIN" placeholder="Enter PIN" maxlength="4" />
-      <button onclick="addUser()">Add</button>
-    </div>
-
-    <div class="card">
-      <h3>Add Match</h3>
-      <div id="addMatchContainer">
-        <input id="home" placeholder="Home Team" />
-        <input id="away" placeholder="Away Team" />
-        <input id="time" type="datetime-local" />
-        <div id="boostedContainer">
-          <input type="checkbox" id="boosted" class="boosted-checkbox" />
-          <label for="boosted" class="boosted-label">Boosted</label>
-        </div>
-        </div>
-        <button onclick="addMatch()">Add Match</button>
-    </div>
-
-    <div class="card">
-      <h3>Delete Matches</h3>
-      <div id="adminMatches"></div>
-    </div>
-
-    <div class="card">
-      <h3>Set Match Result</h3>
-      <select id="resultMatchSelect">
-        <option value="" disabled selected>Select match</option>
+  <!-- User Login Overlay -->
+  <div id="userLoginOverlay">
+    <div id="userLoginBox">
+      <h2>Login</h2>
+      <select id="userLoginSelect" autocomplete="off">
+        <option value="" disabled selected>Select your username</option>
       </select>
-      <input id="resultHome" type="number" min="0" placeholder="Home" />
-      <input id="resultAway" type="number" min="0" placeholder="Away" />
-      <button onclick="setResult()">Save Result</button>
+      <input type="tel" id="userPINInput" placeholder="Enter PIN" autocomplete="off" maxlength="4" />
+      <div id="userLoginError">Invalid username or PIN, try again.</div>
+      <button id="userLoginBtn">Login</button>
+    </div>
+  </div>
+
+  <!-- Main app container hidden initially -->
+  <div id="mainContainer" class="hidden container">
+
+    <h1>⚽ Boukkis</h1>
+
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap;">
+      <button id="refreshBtn">
+        🔄 Refresh
+      </button>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div id="userInfo" style="color: var(--secondary); font-weight: 600; white-space: nowrap;"></div>
+        <button id="logoutBtn">
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-button active" data-tab="predictions-tab">Play</button>
+      <button class="tab-button" data-tab="leaderboard-tab">Rankings</button>
+      <button class="tab-button" data-tab="history-tab">History</button>
+      <button class="tab-button" data-tab="admin-tab">Admin</button>
+    </div>
+
+    <!-- Predictions Tab -->
+    <div id="predictions-tab" class="tab-content active">
+      <div id="matches"></div>
+
+      <div class="card">
+        <button id="saveAllBtn" onclick="saveAllPredictions()">
+          💾 Submit All
+        </button>
+      </div>
+    </div>
+
+    <!-- Leaderboard Tab -->
+    <div id="leaderboard-tab" class="tab-content">
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>USER</th>
+              <th>POINTS</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="history-tab" class="tab-content">
+      <div class="card">
+        <button id="defaultSortBtn" style="margin-bottom:10px;">⇅ Sort</button>
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th onclick="sortHistory('user')" style="cursor:pointer">USER ⬍</th>
+              <th onclick="sortHistory('match')" style="cursor:pointer">MATCH ⬍</th>
+              <th>SCORE</th>
+              <th>TIME</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label>
+          <input type="checkbox" id="toggleOldPredictions" />
+          Show Archived
+        </label>
+      </div>
+    </div>
+
+    <!-- Admin Tab -->
+    <div id="admin-tab" class="tab-content">
+      <div id="login" class="card">
+        <input id="adminPass" type="password" placeholder="Admin password" autocomplete="off" />
+        <button onclick="login()">Login</button>
+      </div>
+
+      <div id="admin" class="hidden">
+
+        <div class="card">
+          <h3>Add User</h3>
+          <input id="newUser" placeholder="Username" />
+          <input type="tel" id="newUserPIN" placeholder="Enter PIN" maxlength="4" />
+          <button onclick="addUser()">Add</button>
+        </div>
+
+        <div class="card">
+          <h3>Add Match</h3>
+          <div id="addMatchContainer">
+            <input id="home" placeholder="Home Team" />
+            <input id="away" placeholder="Away Team" />
+            <input id="time" type="datetime-local" />
+            <div id="boostedContainer">
+              <input type="checkbox" id="boosted" class="boosted-checkbox" />
+              <label for="boosted" class="boosted-label">Boosted</label>
+            </div>
+          </div>
+          <button onclick="addMatch()">Add Match</button>
+        </div>
+
+        <div class="card">
+          <h3>Delete Matches</h3>
+          <div id="adminMatches"></div>
+        </div>
+
+        <div class="card">
+          <h3>Set Match Result</h3>
+          <select id="resultMatchSelect">
+            <option value="" disabled selected>Select match</option>
+          </select>
+          <input id="resultHome" type="number" min="0" placeholder="Home" />
+          <input id="resultAway" type="number" min="0" placeholder="Away" />
+          <button onclick="setResult()">Save Result</button>
+        </div>
+
+      </div>
     </div>
 
   </div>
-</div>
 
-</div>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzKxqPTlMBvCuwq6RTdnNZlZEGNeUyrrDaHTHYttb-qblvo5ryMgDwtI8DJmIYvFHZU/exec";
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzKxqPTlMBvCuwq6RTdnNZlZEGNeUyrrDaHTHYttb-qblvo5ryMgDwtI8DJmIYvFHZU/exec";
+    let pendingPredictions = {};
+    let historySortMode = 'default'; // 'default' | 'user' | 'match'
+    let historySortAsc = true;
 
-let pendingPredictions = {};
-let historySortMode = 'default'; // 'default' | 'user' | 'match'
-let historySortAsc = true;
+    // Global authentication state
+    let currentUser = null;
+    let currentUserPIN = null;
+    let isAdmin = false;
 
-// Global authentication state
-let currentUser = null;
-let currentUserPIN = null;
-let isAdmin = false;
+    let globalData = {
+      users: [],
+      matches: [],
+      predictions: [],
+      results: []
+    };
 
-let globalData = {
-  users: [],
-  matches: [],
-  predictions: [],
-  results: []
-};
+    function showLoader(text = 'Loading…') {
+      document.querySelector('#loader .loader-text').textContent = text;
+      document.getElementById('loader').classList.remove('hidden');
+    }
 
-function showLoader(text = 'Loading…') {
-  document.querySelector('#loader .loader-text').textContent = text;
-  document.getElementById('loader').classList.remove('hidden');
-}
+    function hideLoader() {
+      document.getElementById('loader').classList.add('hidden');
+    }
 
-function hideLoader() {
-  document.getElementById('loader').classList.add('hidden');
-}
+    function sortHistory(column) {
+      if (historySortMode === column) {
+        historySortAsc = !historySortAsc;
+      } else {
+        historySortMode = column;
+        historySortAsc = true;
+      }
 
-function sortHistory(column) {
-  if (historySortMode === column) {
-    historySortAsc = !historySortAsc;
-  } else {
-    historySortMode = column;
-    historySortAsc = true;
-  }
+      renderHistory(
+        globalData.predictions,
+        globalData.matches,
+        document.getElementById('toggleOldPredictions').checked
+      );
+    }
 
-  renderHistory(
-    globalData.predictions,
-    globalData.matches,
-    document.getElementById('toggleOldPredictions').checked
-  );
-}
+    /* Helper to POST form-urlencoded data */
+    function post(data) {
+      const formData = new URLSearchParams();
+      for (const key in data) {
+        formData.append(key, data[key]);
+      }
+      return fetch(API_URL, {
+        method: 'POST',
+        body: formData,
+      }).then(r => r.json());
+    }
 
-/* Helper to POST form-urlencoded data */
-function post(data) {
-  const formData = new URLSearchParams();
-  for (const key in data) {
-    formData.append(key, data[key]);
-  }
-  return fetch(API_URL, {
-    method: 'POST',
-    body: formData,
-  }).then(r => r.json());
-}
+    /* Load users only for login dropdown */
+    async function loadLoginUsers() {
+      try {
+        const data = await fetch(API_URL + "?action=data").then(r => r.json());
+        globalData.users = data.users || [];
+        populateLoginUserSelect(globalData.users);
+      } catch (e) {
+        console.error('Failed to load users:', e);
+      }
+    }
 
-/* Load users only for login dropdown */
-async function loadLoginUsers() {
-  try {
-    const data = await fetch(API_URL + "?action=data").then(r => r.json());
-    globalData.users = data.users || [];
-    populateLoginUserSelect(globalData.users);
-  } catch (e) {
-    console.error('Failed to load users:', e);
-  }
-}
+    /* Load all data */
+    async function load() {
+      showLoader('Loading data…');
+      const data = await fetch(API_URL + "?action=data").then(r => r.json());
+      globalData.users = data.users || [];
+      globalData.matches = data.matches || [];
+      globalData.results = data.results || [];  // load results too
 
-/* Load all data */
-async function load() {
-  showLoader('Loading data…');
-  const data = await fetch(API_URL + "?action=data").then(r => r.json());
-  globalData.users = data.users || [];
-  globalData.matches = data.matches || [];
-  globalData.results = data.results || [];  // load results too
+      // Load predictions separately (for history)
+      try {
+        const predRes = await fetch(API_URL + "?action=predictions");
+        const predData = await predRes.json();
+        globalData.predictions = predData.predictions || [];
+      } catch {
+        globalData.predictions = [];
+      }
 
-  // Load predictions separately (for history)
-  try {
-    const predRes = await fetch(API_URL + "?action=predictions");
-    const predData = await predRes.json();
-    globalData.predictions = predData.predictions || [];
-  } catch {
-    globalData.predictions = [];
-  }
+      populateLoginUserSelect(globalData.users);
+      renderMatches(globalData.matches);
+      renderLeaderboard(globalData.users);
+      renderAdminMatches(globalData.matches);
+      renderHistory(globalData.predictions, globalData.matches, false);
+      renderResultMatchSelect(globalData.matches, globalData.results);
+      hideLoader();
+    }
 
-  populateLoginUserSelect(globalData.users);
-  renderMatches(globalData.matches);
-  renderLeaderboard(globalData.users);
-  renderAdminMatches(globalData.matches);
-  renderHistory(globalData.predictions, globalData.matches, false);
-  renderResultMatchSelect(globalData.matches, globalData.results);
-  hideLoader();
-}
+    /* Populate login user dropdown */
+    function populateLoginUserSelect(users) {
+      const select = document.getElementById('userLoginSelect');
+      select.innerHTML = '<option value="" disabled selected>Select your username</option>';
+      users.forEach(u => {
+        select.innerHTML += `<option value="${u[0]}">${u[0]}</option>`;
+      });
+    }
 
+    /* Listen for user selection to save */
+    document.getElementById('userLoginSelect').addEventListener('change', function () {
+      localStorage.setItem('lastUser', this.value);
+    });
 
-/* Populate login user dropdown */
-function populateLoginUserSelect(users) {
-  const select = document.getElementById('userLoginSelect');
-  select.innerHTML = '<option value="" disabled selected>Select your username</option>';
-  users.forEach(u => {
-    select.innerHTML += `<option value="${u[0]}">${u[0]}</option>`;
-  });
-}
+    /* Render matches for predictions */
+    function renderMatches(matches) {
+      const el = document.getElementById('matches');
+      el.innerHTML = '';
+      const now = new Date();
 
-/* Listen for user selection to save */
-document.getElementById('userLoginSelect').addEventListener('change', function() {
-  localStorage.setItem('lastUser', this.value);
-});
+      // Map predictions by user and match for quick lookup
+      const userPredictions = {};
+      globalData.predictions.forEach(p => {
+        if (p[1] === currentUser) userPredictions[p[0]] = p;
+      });
 
+      matches.forEach(m => {
+        const kickoff = new Date(m[3]);
+        const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000); // +120 mins
+        const nowTime = now.getTime();
+        let status = '';
+        if (nowTime < kickoff.getTime()) status = 'Upcoming';
+        else if (nowTime >= kickoff.getTime() && nowTime <= kickoffEnd.getTime()) status = 'In Progress';
+        else status = 'Completed';
 
+        // Hide completed from prediction list
+        if (status === 'Completed') return;
 
-/* Render matches for predictions */
-function renderMatches(matches) {
-  const el = document.getElementById('matches');
-  el.innerHTML = '';
-  const now = new Date();
+        const locked = now >= kickoff;
+        const div = document.createElement('div');
+        div.className = 'card match' + (locked ? ' locked' : '');
 
-  // Map predictions by user and match for quick lookup
-  const userPredictions = {};
-  globalData.predictions.forEach(p => {
-    if(p[1] === currentUser) userPredictions[p[0]] = p;
-  });
+        // get user's prediction if any
+        const pred = userPredictions[m[0]];
+        const predH = pred ? pred[2] : '';
+        const predA = pred ? pred[3] : '';
 
-  matches.forEach(m => {
-    const kickoff = new Date(m[3]);
-    const kickoffEnd = new Date(kickoff.getTime() + 120*60000); // +120 mins
-    const nowTime = now.getTime();
-    let status = '';
-    if (nowTime < kickoff.getTime()) status = 'Upcoming';
-    else if (nowTime >= kickoff.getTime() && nowTime <= kickoffEnd.getTime()) status = 'In Progress';
-    else status = 'Completed';
+        // Check if boosted column exists and is 'T'
+        const isBoosted = (m.length > 4 && m[4] === 'T');
 
-    // Hide completed from prediction list
-    if(status === 'Completed') return;
-
-    const locked = now >= kickoff;
-    const div = document.createElement('div');
-    div.className = 'card match' + (locked ? ' locked' : '');
-
-    // get user's prediction if any
-    const pred = userPredictions[m[0]];
-    const predH = pred ? pred[2] : '';
-    const predA = pred ? pred[3] : '';
-
-    // Check if boosted column exists and is 'T'
-    const isBoosted = (m.length > 4 && m[4] === 'T');
-
-    div.innerHTML = `
+        div.innerHTML = `
       <div>
         <strong>${m[1]} vs ${m[2]}</strong> 
-        <small style="display:block; color: var(--muted);">${kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</small>
+        <small style="display:block; color: var(--muted);">${kickoff.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</small>
         <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
         ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
       </div>
@@ -858,160 +902,160 @@ function renderMatches(matches) {
         />
       </div>
     `;
-    el.appendChild(div);
-  });
-}
+        el.appendChild(div);
+      });
+    }
 
-function queuePrediction(matchId) {
-  const h = document.getElementById(`h-${matchId}`).value;
-  const a = document.getElementById(`a-${matchId}`).value;
+    function queuePrediction(matchId) {
+      const h = document.getElementById(`h-${matchId}`).value;
+      const a = document.getElementById(`a-${matchId}`).value;
 
-  if (h === '' || a === '') return;
+      if (h === '' || a === '') return;
 
-  pendingPredictions[matchId] = { h, a };
-}
+      pendingPredictions[matchId] = { h, a };
+    }
 
-/* Render leaderboard */
-function renderLeaderboard(users) {
-  const el = document.getElementById('leaderboard');
-  el.innerHTML = '';
-  // Sort descending by points
-  const sorted = users.slice().sort((a,b) => b[1] - a[1]);
-  const medals = ['🥇', '🥈', '🥉'];
-  
-  sorted.forEach((u, idx) => {
-    const medal = medals[idx] || '';
-    const rankNum = idx + 1;
-    const rankBadge = `<span class="rank">${rankNum}</span>`;
-    el.innerHTML += `<tr><td>${medal} ${rankBadge}${u[0]}</td><td>${u[1]}</td></tr>`;
-  });
-}
+    /* Render leaderboard */
+    function renderLeaderboard(users) {
+      const el = document.getElementById('leaderboard');
+      el.innerHTML = '';
+      // Sort descending by points
+      const sorted = users.slice().sort((a, b) => b[1] - a[1]);
+      const medals = ['🥇', '🥈', '🥉'];
 
-/* Render matches for admin to manage */
-function renderAdminMatches(matches) {
-  const el = document.getElementById('adminMatches');
-  el.innerHTML = '';
-  const now = new Date();
-  matches.forEach(m => {
-    const kickoff = new Date(m[3]);
-    const kickoffStr = kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    const disableDelete = now >= kickoff ? 'disabled' : '';
-    const div = document.createElement('div');
-    div.innerHTML = `
+      sorted.forEach((u, idx) => {
+        const medal = medals[idx] || '';
+        const rankNum = idx + 1;
+        const rankBadge = `<span class="rank">${rankNum}</span>`;
+        el.innerHTML += `<tr><td>${medal} ${rankBadge}${u[0]}</td><td>${u[1]}</td></tr>`;
+      });
+    }
+
+    /* Render matches for admin to manage */
+    function renderAdminMatches(matches) {
+      const el = document.getElementById('adminMatches');
+      el.innerHTML = '';
+      const now = new Date();
+      matches.forEach(m => {
+        const kickoff = new Date(m[3]);
+        const kickoffStr = kickoff.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const disableDelete = now >= kickoff ? 'disabled' : '';
+        const div = document.createElement('div');
+        div.innerHTML = `
       <span>${m[1]} vs ${m[2]} — <small style="color: var(--muted);">${kickoffStr}</small></span>
       <button class="remove-match-btn" onclick="removeMatch(${m[0]})" ${disableDelete} title="${disableDelete ? 'Cannot delete match after kickoff' : ''}">ⓧ</button>
     `;
-    el.appendChild(div);
-  });
-}
-
-/* Render prediction history */
-function renderHistory(predictions, matches, showAll = false) {
-  const tbody = document.getElementById('historyBody');
-  tbody.innerHTML = '';
-
-  const matchMap = {};
-  matches.forEach(m => matchMap[m[0]] = m);
-
-  const now = new Date();
-
-  function getStatus(match) {
-    const kickoff = new Date(match[3]);
-    const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
-    if (now < kickoff) return 'Upcoming';
-    if (now >= kickoff && now <= kickoffEnd) return 'In Progress';
-    return 'Completed';
-  }
-
-  function statusRank(status) {
-    if (status === 'In Progress') return 1;
-    if (status === 'Completed') return 2;
-    return 3;
-  }
-
-  let filtered = predictions.filter(p => {
-    const match = matchMap[p[0]];
-    if (!match) return false;
-
-    const kickoff = new Date(match[3]);
-    const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
-
-    // Regular users: only see their own predictions, UNLESS match is in progress or completed
-    const matchStatus = getStatus(matchMap[p[0]]);
-    if (matchStatus === 'Upcoming') {
-      // Only see own upcoming predictions
-      if (p[1] !== currentUser) return false;
+        el.appendChild(div);
+      });
     }
-    // For in-progress and completed, all predictions are visible
 
-    if (!showAll && now > new Date(kickoffEnd.getTime() + 24 * 60 * 60000)) {
-      return false;
-    }
-    return true;
-  });
+    /* Render prediction history */
+    function renderHistory(predictions, matches, showAll = false) {
+      const tbody = document.getElementById('historyBody');
+      tbody.innerHTML = '';
 
-  // DEFAULT SORT
-  if (historySortMode === 'default') {
-    filtered.sort((a, b) => {
-      const ma = matchMap[a[0]];
-      const mb = matchMap[b[0]];
+      const matchMap = {};
+      matches.forEach(m => matchMap[m[0]] = m);
 
-      const sa = getStatus(ma);
-      const sb = getStatus(mb);
+      const now = new Date();
 
-      const r = statusRank(sa) - statusRank(sb);
-      if (r !== 0) return r;
+      function getStatus(match) {
+        const kickoff = new Date(match[3]);
+        const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
+        if (now < kickoff) return 'Upcoming';
+        if (now >= kickoff && now <= kickoffEnd) return 'In Progress';
+        return 'Completed';
+      }
 
-      const nameA = ma[1] + ' vs ' + ma[2];
-      const nameB = mb[1] + ' vs ' + mb[2];
-      return nameA.localeCompare(nameB);
-    });
-  }
+      function statusRank(status) {
+        if (status === 'In Progress') return 1;
+        if (status === 'Completed') return 2;
+        return 3;
+      }
 
-  // USER SORT
-  if (historySortMode === 'user') {
-    filtered.sort((a,b) => historySortAsc
-      ? a[1].localeCompare(b[1])
-      : b[1].localeCompare(a[1])
-    );
-  }
+      let filtered = predictions.filter(p => {
+        const match = matchMap[p[0]];
+        if (!match) return false;
 
-  // MATCH SORT
-  if (historySortMode === 'match') {
-    filtered.sort((a,b) => {
-      const ma = matchMap[a[0]];
-      const mb = matchMap[b[0]];
-      const nameA = ma[1] + ' vs ' + ma[2];
-      const nameB = mb[1] + ' vs ' + mb[2];
-      return historySortAsc
-        ? nameA.localeCompare(nameB)
-        : nameB.localeCompare(nameA);
-    });
-  }
+        const kickoff = new Date(match[3]);
+        const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
 
-  filtered.forEach(p => {
-    const match = matchMap[p[0]];
-    if (!match) return;
+        // Regular users: only see their own predictions, UNLESS match is in progress or completed
+        const matchStatus = getStatus(matchMap[p[0]]);
+        if (matchStatus === 'Upcoming') {
+          // Only see own upcoming predictions
+          if (p[1] !== currentUser) return false;
+        }
+        // For in-progress and completed, all predictions are visible
 
-    const kickoff = new Date(match[3]);
-    const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
+        if (!showAll && now > new Date(kickoffEnd.getTime() + 24 * 60 * 60000)) {
+          return false;
+        }
+        return true;
+      });
 
-    let status = '';
-    if (now < kickoff) status = 'Upcoming';
-    else if (now >= kickoff && now <= kickoffEnd) status = 'In Progress';
-    else status = 'Completed';
+      // DEFAULT SORT
+      if (historySortMode === 'default') {
+        filtered.sort((a, b) => {
+          const ma = matchMap[a[0]];
+          const mb = matchMap[b[0]];
 
-    const isBoosted = (match.length > 4 && match[4] === 'T');
+          const sa = getStatus(ma);
+          const sb = getStatus(mb);
 
-    const dt = new Date(p[4]);
-    const timeStr = dt.toLocaleString(undefined, {
-      year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'
-    });
+          const r = statusRank(sa) - statusRank(sb);
+          if (r !== 0) return r;
 
-    const tr = document.createElement('tr');
-    if (status === 'In Progress') tr.classList.add('live-row');
+          const nameA = ma[1] + ' vs ' + ma[2];
+          const nameB = mb[1] + ' vs ' + mb[2];
+          return nameA.localeCompare(nameB);
+        });
+      }
 
-    tr.innerHTML = `
+      // USER SORT
+      if (historySortMode === 'user') {
+        filtered.sort((a, b) => historySortAsc
+          ? a[1].localeCompare(b[1])
+          : b[1].localeCompare(a[1])
+        );
+      }
+
+      // MATCH SORT
+      if (historySortMode === 'match') {
+        filtered.sort((a, b) => {
+          const ma = matchMap[a[0]];
+          const mb = matchMap[b[0]];
+          const nameA = ma[1] + ' vs ' + ma[2];
+          const nameB = mb[1] + ' vs ' + mb[2];
+          return historySortAsc
+            ? nameA.localeCompare(nameB)
+            : nameB.localeCompare(nameA);
+        });
+      }
+
+      filtered.forEach(p => {
+        const match = matchMap[p[0]];
+        if (!match) return;
+
+        const kickoff = new Date(match[3]);
+        const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
+
+        let status = '';
+        if (now < kickoff) status = 'Upcoming';
+        else if (now >= kickoff && now <= kickoffEnd) status = 'In Progress';
+        else status = 'Completed';
+
+        const isBoosted = (match.length > 4 && match[4] === 'T');
+
+        const dt = new Date(p[4]);
+        const timeStr = dt.toLocaleString(undefined, {
+          year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        const tr = document.createElement('tr');
+        if (status === 'In Progress') tr.classList.add('live-row');
+
+        tr.innerHTML = `
       <td>${p[1]}</td>
       <td>
         ${match[1]} vs ${match[2]}<br/>
@@ -1021,342 +1065,343 @@ function renderHistory(predictions, matches, showAll = false) {
       <td>${p[2]} - ${p[3]}</td>
       <td>${timeStr}</td>
     `;
-    tbody.appendChild(tr);
-  });
-}
+        tbody.appendChild(tr);
+      });
+    }
 
-document.getElementById('defaultSortBtn').addEventListener('click', () => {
-  historySortMode = 'default';
-  renderHistory(globalData.predictions, globalData.matches, document.getElementById('toggleOldPredictions').checked);
-});
-
-document.getElementById('toggleOldPredictions').addEventListener('change', function() {
-  renderHistory(globalData.predictions, globalData.matches, this.checked);
-});
-
-async function saveAllPredictions() {
-  if (!currentUser) {
-    alert("Please login first");
-    return;
-  }
-
-  const entries = Object.entries(pendingPredictions);
-  if (!entries.length) {
-    alert("No predictions to save");
-    return;
-  }
-
-  const btn = document.getElementById('saveAllBtn');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  showLoader('Submitting predictions…');
-
-  for (const [matchId, score] of entries) {
-    await post({
-      action: 'predict',
-      matchId,
-      user: currentUser,
-      h: score.h,
-      a: score.a
+    document.getElementById('defaultSortBtn').addEventListener('click', () => {
+      historySortMode = 'default';
+      renderHistory(globalData.predictions, globalData.matches, document.getElementById('toggleOldPredictions').checked);
     });
-  }
 
-  pendingPredictions = {};
+    document.getElementById('toggleOldPredictions').addEventListener('change', function() {
+      renderHistory(globalData.predictions, globalData.matches, this.checked);
+    });
 
-  // Refresh once
-  const [predData, data] = await Promise.all([
-    fetch(API_URL + "?action=predictions").then(r => r.json()),
-    fetch(API_URL + "?action=data").then(r => r.json())
-  ]);
+    async function saveAllPredictions() {
+      if (!currentUser) {
+        alert("Please login first");
+        return;
+      }
 
-  globalData.predictions = predData.predictions || [];
-  globalData.users = data.users || [];
+      const entries = Object.entries(pendingPredictions);
+      if (!entries.length) {
+        alert("No predictions to save");
+        return;
+      }
 
-  renderLeaderboard(globalData.users);
-  renderHistory(globalData.predictions, globalData.matches);
-  renderMatches(globalData.matches);
+      const btn = document.getElementById('saveAllBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      showLoader('Submitting predictions…');
 
-  btn.disabled = false;
-  btn.textContent = '💾 Submit All';
+      for (const [matchId, score] of entries) {
+        await post({
+          action: 'predict',
+          matchId,
+          user: currentUser,
+          h: score.h,
+          a: score.a
+        });
+      }
+      hideLoader();
 
-  alert("Predictions saved!");
-  hideLoader();
-}
+      pendingPredictions = {};
 
-/* When user changes, pre-fill predictions */
-document.getElementById('userLoginSelect').addEventListener('change', () => {
-  localStorage.setItem('lastUser', document.getElementById('userLoginSelect').value);
-});
+      // Refresh once
+      showLoader('Loading data…');
+      const [predData, data] = await Promise.all([
+        fetch(API_URL + "?action=predictions").then(r => r.json()),
+        fetch(API_URL + "?action=data").then(r => r.json())
+      ]);
 
-/* Admin login */
-function login() {
-  const passInput = document.getElementById('adminPass');
-  post({ action: 'login', password: passInput.value })
-    .then(r => {
-      if (r.ok) {
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('admin').classList.remove('hidden');
+      globalData.predictions = predData.predictions || [];
+      globalData.users = data.users || [];
+
+      renderLeaderboard(globalData.users);
+      renderHistory(globalData.predictions, globalData.matches);
+      renderMatches(globalData.matches);
+
+      btn.disabled = false;
+      btn.textContent = '💾 Submit All';
+      hideLoader();
+    }
+
+    /* When user changes, pre-fill predictions */
+    document.getElementById('userLoginSelect').addEventListener('change', () => {
+      localStorage.setItem('lastUser', document.getElementById('userLoginSelect').value);
+    });
+
+    /* Admin login */
+    function login() {
+      const passInput = document.getElementById('adminPass');
+      post({ action: 'login', password: passInput.value })
+        .then(r => {
+          if (r.ok) {
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('admin').classList.remove('hidden');
+            load();
+          } else {
+            alert("Wrong password");
+          }
+        });
+    }
+
+    /* Add user */
+    function addUser() {
+      showLoader('Saving user…');
+      const newUser = document.getElementById('newUser');
+      const newUserPIN = document.getElementById('newUserPIN');
+
+      if (!newUser.value) return alert("Enter username");
+      if (!newUserPIN.value || newUserPIN.value.length !== 4 || isNaN(newUserPIN.value)) {
+        return alert("PIN must be 4 digits");
+      }
+
+      post({ action: 'addUser', user: newUser.value, pin: newUserPIN.value }).then(() => {
+        newUser.value = '';
+        newUserPIN.value = '';
         load();
-      } else {
-        alert("Wrong password");
+        hideLoader();
+      });
+    }
+
+    /* Add match */
+    function addMatch() {
+      showLoader('Adding match…');
+      const home = document.getElementById('home');
+      const away = document.getElementById('away');
+      const time = document.getElementById('time');
+      const boosted = document.getElementById('boosted').checked ? 'T' : 'F';
+      if (!home.value || !away.value || !time.value) return alert("Fill all match fields");
+
+      post({
+        action: 'addMatch',
+        home: home.value,
+        away: away.value,
+        kickoff: time.value,
+        boosted
+      }).then(() => {
+        home.value = '';
+        away.value = '';
+        time.value = '';
+        document.getElementById('boosted').checked = false;
+        load();
+        hideLoader();
+      });
+    }
+
+    /* Remove match */
+    function removeMatch(id) {
+      if (!confirm("Remove this match?")) return;
+      // Check kickoff time - prevent delete if passed
+      const match = globalData.matches.find(m => m[0] == id);
+      if (!match) return alert("Match not found");
+      if (new Date(match[3]) <= new Date()) {
+        alert("Cannot delete match after kickoff time");
+        return;
+      }
+      showLoader('Deleting match…');
+      post({ action: 'removeMatch', id }).then(load);
+      hideLoader();
+    }
+
+    function renderResultMatchSelect(matches, results) {
+      const select = document.getElementById('resultMatchSelect');
+      const currentValue = select.value;
+      const now = new Date();
+      select.innerHTML = '<option value="" disabled>Select match</option>';
+
+      // Make a Set of matchIds that already have results
+      const matchesWithResults = new Set(results.map(r => r[0].toString()));
+
+      matches.forEach(m => {
+        const kickoff = new Date(m[3]);
+        const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
+        const matchIdStr = m[0].toString();
+        // Only if kickoff + 120 mins passed AND no result exists yet
+        if (now >= kickoffEnd && !matchesWithResults.has(matchIdStr)) {
+          const label = `${m[1]} vs ${m[2]} (${kickoff.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })})`;
+          const selected = (matchIdStr === currentValue) ? 'selected' : '';
+          select.innerHTML += `<option value="${m[0]}" ${selected}>${label}</option>`;
+        }
+      });
+    }
+
+    /* Save match result */
+    function setResult() {
+      const matchSelect = document.getElementById('resultMatchSelect');
+      const h = document.getElementById('resultHome').value;
+      const a = document.getElementById('resultAway').value;
+      const matchId = matchSelect.value;
+
+      if (!matchId) return alert("Select a match");
+      if (h === '' || a === '') return alert("Enter both home and away goals");
+
+      showLoader('Saving result…');
+      post({ action: 'result', matchId, h, a }).then(() => {
+        // Clear inputs after saving result
+        matchSelect.value = '';
+        document.getElementById('resultHome').value = '';
+        document.getElementById('resultAway').value = '';
+        load();
+        hideLoader();
+      });
+    }
+
+    /* User login overlay elements */
+    const userLoginOverlay = document.getElementById('userLoginOverlay');
+    const userLoginSelect = document.getElementById('userLoginSelect');
+    const userPINInput = document.getElementById('userPINInput');
+    const userLoginBtn = document.getElementById('userLoginBtn');
+    const userLoginError = document.getElementById('userLoginError');
+
+    userLoginBtn.onclick = async () => {
+      const username = userLoginSelect.value;
+      const pin = userPINInput.value.trim();
+
+      if (!username) {
+        alert("Please select your username");
+        return;
+      }
+
+      if (!pin) {
+        alert("Please enter your PIN");
+        return;
+      }
+
+      if (pin.length !== 4 || isNaN(pin)) {
+        alert("PIN must be 4 digits");
+        return;
+      }
+
+      userLoginError.style.display = 'none';
+      userLoginBtn.disabled = true;
+
+      // Validate PIN server-side
+      const valid = await post({ action: 'userLogin', username, pin });
+
+      if (!valid.ok) {
+        userLoginBtn.disabled = false;
+        userLoginError.style.display = 'block';
+        userPINInput.value = '';
+        userPINInput.focus();
+        return;
+      }
+
+      // Login successful
+      currentUser = username;
+      currentUserPIN = pin;
+      isAdmin = false; // Regular user login, not admin
+
+      // Hide login overlay
+      userLoginOverlay.style.display = 'none';
+      // Show main container
+      document.getElementById('mainContainer').classList.remove('hidden');
+
+      // Restore scrolling and height on body
+      document.body.style.overflow = 'auto';
+      document.body.style.height = 'auto';
+
+      // Update user info display
+      updateUserInfo();
+
+      userLoginBtn.disabled = false;
+
+      load();
+    };
+
+    /* Press Enter key on PIN input triggers login */
+    userPINInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        userLoginBtn.click();
       }
     });
-}
 
-/* Add user */
-function addUser() {
-  showLoader('Saving user…');
-  const newUser = document.getElementById('newUser');
-  const newUserPIN = document.getElementById('newUserPIN');
-  
-  if (!newUser.value) return alert("Enter username");
-  if (!newUserPIN.value || newUserPIN.value.length !== 4 || isNaN(newUserPIN.value)) {
-    return alert("PIN must be 4 digits");
-  }
-  
-  post({ action: 'addUser', user: newUser.value, pin: newUserPIN.value }).then(() => {
-    newUser.value = '';
-    newUserPIN.value = '';
-    load();
-    hideLoader();
-  });
-}
-
-/* Add match */
-function addMatch() {
-  showLoader('Adding match…');
-  const home = document.getElementById('home');
-  const away = document.getElementById('away');
-  const time = document.getElementById('time');
-  const boosted = document.getElementById('boosted').checked ? 'T' : 'F';
-  if (!home.value || !away.value || !time.value) return alert("Fill all match fields");
-
-  post({ 
-    action: 'addMatch', 
-    home: home.value, 
-    away: away.value, 
-    kickoff: time.value,
-    boosted 
-  }).then(() => {
-    home.value = '';
-    away.value = '';
-    time.value = '';
-    document.getElementById('boosted').checked = false;
-    load();
-    hideLoader();
-  });
-}
-
-/* Remove match */
-function removeMatch(id) {
-  if (!confirm("Remove this match?")) return;
-  // Check kickoff time - prevent delete if passed
-  const match = globalData.matches.find(m => m[0] == id);
-  if (!match) return alert("Match not found");
-  if (new Date(match[3]) <= new Date()) {
-    alert("Cannot delete match after kickoff time");
-    return;
-  }
-  showLoader('Deleting match…');
-  post({ action: 'removeMatch', id }).then(load);
-  hideLoader();
-}
-
-function renderResultMatchSelect(matches, results) {
-  const select = document.getElementById('resultMatchSelect');
-  const currentValue = select.value;
-  const now = new Date();
-  select.innerHTML = '<option value="" disabled>Select match</option>';
-
-  // Make a Set of matchIds that already have results
-  const matchesWithResults = new Set(results.map(r => r[0].toString()));
-
-  matches.forEach(m => {
-    const kickoff = new Date(m[3]);
-    const kickoffEnd = new Date(kickoff.getTime() + 120 * 60000);
-    const matchIdStr = m[0].toString();
-    // Only if kickoff + 120 mins passed AND no result exists yet
-    if (now >= kickoffEnd && !matchesWithResults.has(matchIdStr)) {
-      const label = `${m[1]} vs ${m[2]} (${kickoff.toLocaleString(undefined, {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})})`;
-      const selected = (matchIdStr === currentValue) ? 'selected' : '';
-      select.innerHTML += `<option value="${m[0]}" ${selected}>${label}</option>`;
+    /* Update user info in header */
+    function updateUserInfo() {
+      const userInfoEl = document.getElementById('userInfo');
+      if (currentUser) {
+        userInfoEl.textContent = `Welcome ${currentUser}`;
+      }
     }
-  });
-}
 
-/* Save match result */
-function setResult() {
-  const matchSelect = document.getElementById('resultMatchSelect');
-  const h = document.getElementById('resultHome').value;
-  const a = document.getElementById('resultAway').value;
-  const matchId = matchSelect.value;
+    /* Logout function */
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to logout?')) {
+        currentUser = null;
+        currentUserPIN = null;
+        isAdmin = false;
+        pendingPredictions = {};
 
-  if (!matchId) return alert("Select a match");
-  if (h === '' || a === '') return alert("Enter both home and away goals");
+        // Hide main container
+        document.getElementById('mainContainer').classList.add('hidden');
+        // Show login overlay
+        userLoginOverlay.style.display = 'flex';
 
-  showLoader('Saving result…');
-  post({ action: 'result', matchId, h, a }).then(() => {
-    // Clear inputs after saving result
-    matchSelect.value = '';
-    document.getElementById('resultHome').value = '';
-    document.getElementById('resultAway').value = '';
-    load();
-    hideLoader();
-  });
-}
+        // Clear inputs
+        userLoginSelect.value = '';
+        userPINInput.value = '';
+        userLoginError.style.display = 'none';
 
-/* User login overlay elements */
-const userLoginOverlay = document.getElementById('userLoginOverlay');
-const userLoginSelect = document.getElementById('userLoginSelect');
-const userPINInput = document.getElementById('userPINInput');
-const userLoginBtn = document.getElementById('userLoginBtn');
-const userLoginError = document.getElementById('userLoginError');
+        // Allow body scroll again
+        document.body.style.overflow = 'hidden';
+        document.body.style.height = '100vh';
+      }
+    });
 
-userLoginBtn.onclick = async () => {
-  const username = userLoginSelect.value;
-  const pin = userPINInput.value.trim();
-  
-  if (!username) {
-    alert("Please select your username");
-    return;
-  }
-  
-  if (!pin) {
-    alert("Please enter your PIN");
-    return;
-  }
-  
-  if (pin.length !== 4 || isNaN(pin)) {
-    alert("PIN must be 4 digits");
-    return;
-  }
+    document.getElementById('adminPass').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        login();
+      }
+    });
 
-  userLoginError.style.display = 'none';
-  userLoginBtn.disabled = true;
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      showLoader('Reloading data…');
+      load().then(() => {
+        hideLoader();
+      });
+    });
 
-  // Validate PIN server-side
-  const valid = await post({ action: 'userLogin', username, pin });
+    /* Tab switching */
+    document.querySelectorAll('.tab-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
 
-  if (!valid.ok) {
-    userLoginBtn.disabled = false;
-    userLoginError.style.display = 'block';
-    userPINInput.value = '';
-    userPINInput.focus();
-    return;
-  }
+        // Remove active class from all buttons and contents
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-  // Login successful
-  currentUser = username;
-  currentUserPIN = pin;
-  isAdmin = false; // Regular user login, not admin
+        // Add active class to clicked button and corresponding content
+        btn.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
 
-  // Hide login overlay
-  userLoginOverlay.style.display = 'none';
-  // Show main container
-  document.getElementById('mainContainer').classList.remove('hidden');
+        // Save preference
+        localStorage.setItem('activeTab', tabId);
+      });
+    });
 
-  // Restore scrolling and height on body
-  document.body.style.overflow = 'auto';
-  document.body.style.height = 'auto';
+    // Restore active tab on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTab = localStorage.getItem('activeTab') || 'predictions-tab';
+      const tabBtn = document.querySelector(`[data-tab="${savedTab}"]`);
+      if (tabBtn) {
+        tabBtn.click();
+      }
 
-  // Update user info display
-  updateUserInfo();
+      // Show loader and load users for login dropdown
+      showLoader('Loading users…');
+      loadLoginUsers().then(() => {
+        hideLoader();
+      });
+    });
 
-  userLoginBtn.disabled = false;
-
-  load();
-};
-
-/* Press Enter key on PIN input triggers login */
-userPINInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    userLoginBtn.click();
-  }
-});
-
-/* Update user info in header */
-function updateUserInfo() {
-  const userInfoEl = document.getElementById('userInfo');
-  if (currentUser) {
-    userInfoEl.textContent = `Welcome ${currentUser}`;
-  }
-}
-
-/* Logout function */
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  if (confirm('Are you sure you want to logout?')) {
-    currentUser = null;
-    currentUserPIN = null;
-    isAdmin = false;
-    pendingPredictions = {};
-    
-    // Hide main container
-    document.getElementById('mainContainer').classList.add('hidden');
-    // Show login overlay
-    userLoginOverlay.style.display = 'flex';
-    
-    // Clear inputs
-    userLoginSelect.value = '';
-    userPINInput.value = '';
-    userLoginError.style.display = 'none';
-    
-    // Allow body scroll again
-    document.body.style.overflow = 'hidden';
-    document.body.style.height = '100vh';
-  }
-});
-
-document.getElementById('adminPass').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    login();
-  }
-});
-
-document.getElementById('refreshBtn').addEventListener('click', () => {
-  showLoader('Reloading data…');
-  load().then(() => {
-    hideLoader();
-  });
-});
-
-/* Tab switching */
-document.querySelectorAll('.tab-button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tabId = btn.getAttribute('data-tab');
-    
-    // Remove active class from all buttons and contents
-    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
-    // Add active class to clicked button and corresponding content
-    btn.classList.add('active');
-    document.getElementById(tabId).classList.add('active');
-    
-    // Save preference
-    localStorage.setItem('activeTab', tabId);
-  });
-});
-
-// Restore active tab on page load
-window.addEventListener('DOMContentLoaded', () => {
-  const savedTab = localStorage.getItem('activeTab') || 'predictions-tab';
-  const tabBtn = document.querySelector(`[data-tab="${savedTab}"]`);
-  if (tabBtn) {
-    tabBtn.click();
-  }
-  
-  // Show loader and load users for login dropdown
-  showLoader('Loading users…');
-  loadLoginUsers().then(() => {
-    hideLoader();
-  });
-});
-
-</script>
-<!-- Global Loader -->
-<div id="loader" class="hidden">
-  <div class="spinner"></div>
-  <div class="loader-text">Loading…</div>
-</div>
+  </script>
+  <!-- Global Loader -->
+  <div id="loader" class="hidden">
+    <div class="spinner"></div>
+    <div class="loader-text">Loading…</div>
+  </div>
 </body>
+
 </html>
