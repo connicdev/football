@@ -749,7 +749,6 @@
     // Global authentication state
     let currentUser = null;
     let currentUserPIN = null;
-    let isAdmin = false;
 
     let globalData = {
       users: [],
@@ -1292,7 +1291,6 @@
       // Login successful
       currentUser = username;
       currentUserPIN = pin;
-      isAdmin = false; // Regular user login, not admin
 
       // Hide login overlay
       userLoginOverlay.style.display = 'none';
@@ -1331,7 +1329,6 @@
       if (confirm('Are you sure you want to logout?')) {
         currentUser = null;
         currentUserPIN = null;
-        isAdmin = false;
         pendingPredictions = {};
 
         // Hide main container
