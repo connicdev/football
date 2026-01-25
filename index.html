@@ -1194,8 +1194,8 @@ function setResult() {
   if (!matchId) return alert("Select a match");
   if (h === '' || a === '') return alert("Enter both home and away goals");
 
+  showLoader('Saving result…');
   post({ action: 'result', matchId, h, a }).then(() => {
-    showLoader('Saving result…');
     // Clear inputs after saving result
     matchSelect.value = '';
     document.getElementById('resultHome').value = '';
