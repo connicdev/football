@@ -611,7 +611,7 @@
         <option value="" disabled selected>Select your username</option>
       </select>
       <input type="tel" id="userPINInput" placeholder="Enter PIN" autocomplete="off" maxlength="4" />
-      <div id="userLoginError">Invalid username or PIN, try again.</div>
+      <div id="userLoginError">Invalid PIN</div>
       <button id="userLoginBtn">Login</button>
     </div>
   </div>
@@ -1282,7 +1282,9 @@
       userLoginBtn.disabled = true;
 
       // Validate PIN server-side
+      showLoader('Logging in…');
       const valid = await post({ action: 'userLogin', username, pin });
+      hideLoader();
 
       if (!valid.ok) {
         userLoginBtn.disabled = false;
