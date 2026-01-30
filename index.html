@@ -1092,7 +1092,7 @@
         tr.innerHTML = `
           <td>${p[1]}</td>
           <td>
-            ${match[1]} vs ${match[2]}<br/>
+            <strong>${match[1]}</strong> vs <strong>${match[2]}</strong><br/>
             <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
             ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
             ${result ? `<span class="result-score">SETTLED ${result[1]}-${result[2]}</span>` : ''}
