@@ -357,7 +357,7 @@
       display: inline-block;
       padding: 4px 10px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -395,6 +395,26 @@
       font-weight: 700;
       text-transform: uppercase;
       user-select: none;
+    }
+
+    .result-score {
+      display: inline-block;
+      margin-left: 8px;
+      margin-top: 5px;
+      padding: 3px 8px;
+      background-color: var(--primary);
+      color: rgb(0, 0, 0);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    @media (max-width: 600px) {
+      .result-score, .boosted-tag {
+        margin-left: 0px !important;
+      }
     }
 
     /* Style for the boosted checkbox label to match the boosted tag */
@@ -779,6 +799,7 @@
       renderHistory(
         globalData.predictions,
         globalData.matches,
+        globalData.results,
         document.getElementById('toggleOldPredictions').checked
       );
     }
@@ -826,7 +847,7 @@
       renderMatches(globalData.matches);
       renderLeaderboard(globalData.users);
       renderAdminMatches(globalData.matches);
-      renderHistory(globalData.predictions, globalData.matches, false);
+      renderHistory(globalData.predictions, globalData.matches, globalData.results, document.getElementById('toggleOldPredictions').checked);
       renderResultMatchSelect(globalData.matches, globalData.results);
       hideLoader();
     }
@@ -952,12 +973,18 @@
     }
 
     /* Render prediction history */
-    function renderHistory(predictions, matches, showAll = false) {
+    function renderHistory(predictions, matches, results, showAll = false) {
       const tbody = document.getElementById('historyBody');
       tbody.innerHTML = '';
 
       const matchMap = {};
       matches.forEach(m => matchMap[m[0]] = m);
+
+      const resultsMap = {};
+      results.forEach(r => {
+        console.log('Mapping result for matchId:', r[0]);
+        resultsMap[String(r[0])] = r;
+      });
 
       const now = new Date();
 
@@ -1048,6 +1075,7 @@
         else status = 'Finished';
 
         const isBoosted = (match.length > 4 && match[4] === 'T');
+        const result = resultsMap[String(match[0])];    
 
         const dt = new Date(p[4]);
         const timeStr = dt.toLocaleString(undefined, {
@@ -1058,26 +1086,27 @@
         if (status === 'In Progress') tr.classList.add('live-row');
 
         tr.innerHTML = `
-      <td>${p[1]}</td>
-      <td>
-        ${match[1]} vs ${match[2]}<br/>
-        <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
-        ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
-      </td>
-      <td>${p[2]} - ${p[3]}</td>
-      <td>${timeStr}</td>
-    `;
+          <td>${p[1]}</td>
+          <td>
+            ${match[1]} vs ${match[2]}<br/>
+            <span class="status ${status.toLowerCase().replace(' ', '')}">${status}</span>
+            ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
+            ${result ? `<span class="result-score">SETTLED ${result[1]}-${result[2]}</span>` : ''}
+          </td>
+          <td>${p[2]} - ${p[3]}</td>
+          <td>${timeStr}</td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
     document.getElementById('defaultSortBtn').addEventListener('click', () => {
       historySortMode = 'default';
-      renderHistory(globalData.predictions, globalData.matches, document.getElementById('toggleOldPredictions').checked);
+      renderHistory(globalData.predictions, globalData.matches, globalData.results, document.getElementById('toggleOldPredictions').checked);
     });
 
     document.getElementById('toggleOldPredictions').addEventListener('change', function() {
-      renderHistory(globalData.predictions, globalData.matches, this.checked);
+      renderHistory(globalData.predictions, globalData.matches, globalData.results, this.checked);
     });
 
     async function saveAllPredictions() {
@@ -1121,7 +1150,7 @@
       globalData.users = data.users || [];
 
       renderLeaderboard(globalData.users);
-      renderHistory(globalData.predictions, globalData.matches);
+      renderHistory(globalData.predictions, globalData.matches, globalData.results, document.getElementById('toggleOldPredictions').checked);
       renderMatches(globalData.matches);
 
       btn.disabled = false;
