@@ -651,7 +651,7 @@
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <div id="userInfo" style="color: var(--secondary); font-weight: 600; white-space: nowrap;"></div>
         <button id="logoutBtn">
-          Logout
+          ⏎
         </button>
       </div>
     </div>
@@ -728,7 +728,7 @@
           <h3>Add User</h3>
           <input id="newUser" placeholder="Username" />
           <input type="tel" id="newUserPIN" placeholder="Enter PIN" maxlength="4" />
-          <button onclick="addUser()">Add</button>
+          <button onclick="addUser()">Add User</button>
         </div>
 
         <div class="card">
@@ -1292,6 +1292,12 @@
     const userPINInput = document.getElementById('userPINInput');
     const userLoginBtn = document.getElementById('userLoginBtn');
     const userLoginError = document.getElementById('userLoginError');
+
+    userPINInput.oninput = () => {
+      if (userPINInput.value.length == 4) {
+        userLoginBtn.click();
+      }
+    };
 
     userLoginBtn.onclick = async () => {
       const username = userLoginSelect.value;
