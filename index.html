@@ -200,6 +200,12 @@
       font-weight: 600;
     }
 
+    #version {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
     /* Keep main container hidden initially */
     #mainContainer.hidden {
       display: none;
@@ -251,6 +257,20 @@
     .match-actions input[type="number"] {
       width: 60px;
       text-align: center;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    /* Chrome, Safari, Edge, Opera */
+    .match-actions input::-webkit-outer-spin-button,
+    .match-actions input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    .match-actions input[type=number] {
+      -moz-appearance: textfield;
     }
 
     /* Desktop spacing for form sections */
@@ -634,25 +654,24 @@
       <select id="userLoginSelect" autocomplete="off">
         <option value="" disabled selected>Select your username</option>
       </select>
-      <input type="tel" id="userPINInput" placeholder="Enter PIN" autocomplete="off" maxlength="4" />
+      <input type="tel" id="userPINInput" placeholder="Enter your PIN" autocomplete="off" maxlength="4" />
       <div id="userLoginError">Invalid PIN</div>
       <button id="userLoginBtn">Login</button>
+      <div id="version">v1.34</div>
     </div>
   </div>
 
   <!-- Main app container hidden initially -->
   <div id="mainContainer" class="hidden container">
 
-    <h1>⚽ Boukkis</h1>
+    <h1>Boukkis ⚽</h1>
 
     <div
       style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap;">
       <button id="refreshBtn">Refresh</button>
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <div id="userInfo" style="color: var(--secondary); font-weight: 600; white-space: nowrap;"></div>
-        <button id="logoutBtn">
-          ⏎
-        </button>
+        <button id="logoutBtn">⏎</button>
       </div>
     </div>
 
@@ -670,7 +689,7 @@
 
       <div class="card">
         <button id="saveAllBtn" onclick="saveAllPredictions()">
-          💾 Submit All
+          Submit All
         </button>
       </div>
     </div>
@@ -718,7 +737,7 @@
     <!-- Admin Tab -->
     <div id="admin-tab" class="tab-content">
       <div id="login" class="card">
-        <input id="adminPass" type="password" placeholder="Admin password" autocomplete="off" />
+        <input id="adminPass" type="password" placeholder="Password" autocomplete="off" />
         <button onclick="login()">Login</button>
       </div>
 
@@ -757,7 +776,7 @@
           </select>
           <input id="resultHome" type="number" min="0" placeholder="Home" />
           <input id="resultAway" type="number" min="0" placeholder="Away" />
-          <button onclick="setResult()">Save Result</button>
+          <button onclick="setResult()">Set Result</button>
         </div>
 
       </div>
@@ -771,6 +790,7 @@
     let pendingPredictions = {};
     let historySortMode = 'default'; // 'default' | 'user' | 'match'
     let historySortAsc = true;
+    let isAdmin = false;
 
     // Global authentication state
     let currentUser = null;
@@ -915,13 +935,13 @@
         ${isBoosted ? '<span class="boosted-tag">Boosted</span>' : ''}
       </div>
       <div class="match-actions">
-        <input id="h-${m[0]}" type="number" min="0"
+        <input id="h-${m[0]}" type="number" min="0" max="20"
           ${locked ? 'disabled' : ''}
           value="${predH}"
           oninput="queuePrediction(${m[0]})"
         />
         -
-        <input id="a-${m[0]}" type="number" min="0"
+        <input id="a-${m[0]}" type="number" min="0" max="20"
           ${locked ? 'disabled' : ''}
           value="${predA}"
           oninput="queuePrediction(${m[0]})"
@@ -986,7 +1006,6 @@
 
       const resultsMap = {};
       results.forEach(r => {
-        console.log('Mapping result for matchId:', r[0]);
         resultsMap[String(r[0])] = r;
       });
 
@@ -1131,13 +1150,20 @@
       showLoader('Submitting predictions…');
 
       for (const [matchId, score] of entries) {
-        await post({
+        const match = globalData.matches.find(m => m[0] == matchId);
+        const kickoff = new Date(match[3]);
+        if (kickoff > new Date()) {
+         await post({
           action: 'predict',
           matchId,
           user: currentUser,
           h: score.h,
           a: score.a
-        });
+        }); 
+        } else {
+          alert("Match " + match[1] + " vs " + match[2] + " already started.");
+          break;
+        } 
       }
       hideLoader();
 
@@ -1158,7 +1184,7 @@
       renderMatches(globalData.matches);
 
       btn.disabled = false;
-      btn.textContent = '💾 Submit All';
+      btn.textContent = 'Submit All';
       hideLoader();
     }
 
@@ -1176,16 +1202,24 @@
           if (r.ok) {
             document.getElementById('login').classList.add('hidden');
             document.getElementById('admin').classList.remove('hidden');
+            isAdmin = true;
+            updateUserInfo();
             hideLoader();
             load();
           } else {
+            hideLoader();
             alert("Wrong password");
+            return;
           }
         });
     }
 
     /* Add user */
     function addUser() {
+      if (!isAdmin) {
+        alert("Admin login required");
+        return;
+      }
       const newUser = document.getElementById('newUser');
       const newUserPIN = document.getElementById('newUserPIN');
 
@@ -1205,6 +1239,10 @@
 
     /* Add match */
     function addMatch() {
+      if (!isAdmin) {
+        alert("Admin login required");
+        return;
+      }
       const home = document.getElementById('home');
       const away = document.getElementById('away');
       const time = document.getElementById('time');
@@ -1230,6 +1268,10 @@
 
     /* Remove match */
     function removeMatch(id) {
+      if (!isAdmin) {
+        alert("Admin login required");
+        return;
+      }
       if (!confirm("Remove this match?")) return;
       // Check kickoff time - prevent delete if passed
       const match = globalData.matches.find(m => m[0] == id);
@@ -1267,6 +1309,10 @@
 
     /* Save match result */
     function setResult() {
+      if (!isAdmin) {
+        alert("Admin login required");
+        return;
+      }
       const matchSelect = document.getElementById('resultMatchSelect');
       const h = document.getElementById('resultHome').value;
       const a = document.getElementById('resultAway').value;
@@ -1367,6 +1413,9 @@
       const userInfoEl = document.getElementById('userInfo');
       if (currentUser) {
         userInfoEl.textContent = `Welcome ${currentUser}`;
+      }
+      if (isAdmin) {
+        userInfoEl.textContent += ' ⛭';
       }
     }
 
